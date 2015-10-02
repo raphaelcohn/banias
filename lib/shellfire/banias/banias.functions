@@ -1,0 +1,100 @@
+# This file is part of banias. It is subject to the licence terms in the COPYRIGHT file found in the top-level directory of this distribution and at https://raw.githubusercontent.com/raphaelcohn/banias/master/COPYRIGHT. No part of banias, including this file, may be copied, modified, propagated, or distributed except according to the terms contained in the COPYRIGHT file.
+# Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/raphaelcohn/banias/master/COPYRIGHT.
+
+
+core_dependency_requires '*' uname
+banias_ensureDependenciesPresent()
+{
+	case "$(uname)" in
+		
+		Darwin)
+			# Assumes Homebrew is present
+			brew install pandoc 2>/dev/null
+			
+			local texLiveLatexEngineLocation='/usr/texbin/xelatex'
+			if [ -x "$texLiveLatexEngineLocation" ]; then
+				latexEngine="$texLiveLatexEngineLocation"
+			else
+				core_exitError $core_commandLine_exitCode_FAILURE "Please install TexLive for Mac OS X from https://www.tug.org/mactex/ (it's a 2.5Gb Download and 5Gb install)!"
+			fi
+		;;
+		
+		*)
+			# Can also be lualatex and pdflatex (or a path)
+			latexEngine='xelatex'
+		;;
+			
+	esac
+}
+
+banias_confirmReportFolderIsPresent()
+{
+	if [ ! -d "$reportName" ]; then
+		core_exitError $core_commandLine_exitCode_FAILURE "There is no folder for report '$reportName'"
+	fi
+}
+
+banias_confirmPandocHeaderFileIsPresent()
+{
+	if [ ! -f "$reportName".pandoc ]; then
+		core_exitError $core_commandLine_exitCode_FAILURE "There is no header file '$reportName.pandoc' for report '$reportName'"
+	fi
+}
+
+core_dependency_requires '*' pandoc
+banias_markdownToReportPdf()
+{
+	# This logic, which can live in a subfunction, correctly expands to all markdown files present in glob-expansion sort order
+	set +f
+	set - *.md
+	set -f
+	if [ $# -eq 1 ]; then
+		if [ ! -f "$1" ]; then
+			set -
+		fi
+	fi
+	
+	# xelatex is the better engine, eg for Chinese, but requires MacText-2015, which is a monster
+	# See also http://pandoc.org/demo/example19/Creating-a-PDF.html
+	# See http://earthwithsun.com/questions/601469/getting-chapters-to-start-on-a-new-page-in-a-pandoc-generated-pdf
+	pandoc --latex-engine "$latexEngine" -V monofont:"Andale Mono" -V links-as-notes -V geometry:"top=2cm, bottom=4cm, left=1.5cm, right=1.5cm" \
+	--toc --toc-depth=4 --number-sections --base-header-level=1 \
+	--smart --preserve-tabs --chapters -V documentclass=report -H ../generate-report.template.tex \
+	--from=markdown \
+	-o ../"$reportName".pdf "$reportName".pandoc "$@"
+}
+
+core_dependency_requires '*' uname
+core_dependency_oneOf 'Homebrew' open
+banias_openReportIfOnMacOsX()
+{
+	case "$(uname)" in
+		
+		Darwin)
+			open ../"$reportName".pdf
+		;;
+	
+	esac
+}
+
+banias_main()
+{
+	if [ $# -eq 0 ]; then
+		core_exitError $core_commandLine_exitCode_FAILURE "Please specify at least one report name"
+	fi
+	
+	banias_ensureDependenciesPresent
+	
+	local reportName
+	for reportName in "$@"
+	do
+		banias_confirmReportFolderIsPresent
+		pushd "$reportName"
+		
+			banias_confirmPandocHeaderFileIsPresent
+			banias_markdownToReportPdf
+			banias_openReportIfOnMacOsX
+		
+		popd
+	done
+}
