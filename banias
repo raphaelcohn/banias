@@ -4,10 +4,20 @@
 
 _program()
 {
-	core_usesIn banias
+	core_usesIn banias dependencies validate reports
     banias()
     {
-        banias_main
+		banias_dependencies_populateUname
+		banias_dependencies_checkForPresenceOfLatex
+		
+		banias_validate_populatePotentialReportsIfNonOptionsEmpty
+		banias_reports_makeReportsPathAbsolute
+		banias_validate_populateReportsCheckingTheyAreValid
+		
+		banias_reports_createOutputPathAndMakeItAbsolute
+		banias_reports_createTemporaryFileToConcatenateMarkdownTo
+		banias_reports_registerConfiguration
+        banias_reports_create
     }
 }
 
@@ -20,5 +30,93 @@ _program_etcPath="${_program_path}/etc"
 _program_varPath="${_program_path}/var"
 _program_entrypoint='banias'
 
-# Assumes pwd, and so requires this code to be running from this folder
+_program_commandLine_parseInitialise()
+{
+	banias_reportsPath_default="$(pwd)"
+	banias_outputPath_default="$banias_reportsPath_default"
+}
+
+_program_commandLine_helpMessage()
+{
+	_program_commandLine_helpMessage_usage="[OPTION]... -- [REPORTs]...
+"
+	_program_commandLine_helpMessage_description="Creates PDF REPORTs from markdown fragments stored in Git; reports are folders"
+	_program_commandLine_helpMessage_options="
+  -r, --reports-path PATH  PATH to reports folder.
+                           Defaults to '$banias_reportsPath_default'.
+  -o, --output-path PATH   PATH to folder of output.
+                           Defaults to '$banias_outputPath_default'.
+If REPORTs are unspecified, all reports are used"
+    _program_commandLine_helpMessage_optionsSpacing='   '
+	_program_commandLine_helpMessage_configurationKeys="
+  banias_reportsPath  Equivalent to --reports-path
+  banias_outputPath   Equivalent to --output-path
+"
+	_program_commandLine_helpMessage_examples="
+  ${_program_name} my-report
+"
+}
+
+_program_commandLine_optionExists()
+{
+	case "$optionName" in
+		
+		o|output-path)
+			echo 'yes-argumented'
+		;;
+		
+		r|reports-path)
+			echo 'yes-argumented'
+		;;
+		
+		*)
+			echo 'no'
+		;;
+		
+	esac
+}
+
+_program_commandLine_processOptionWithoutArgument()
+{
+	:
+}
+
+_program_commandLine_processOptionWithArgument()
+{
+	case "$optionName" in
+		
+		o|output-path)
+			core_validate_folderPathIsReadableAndSearchableAndWritableOrCanBeCreated $core_commandLine_exitCode_USAGE 'option' "$optionNameIncludingHyphens" "$optionValue"
+			banias_outputPath="$optionValue"
+		;;
+		
+		r|reports-path)
+			core_validate_folderPathReadableAndSearchable $core_commandLine_exitCode_USAGE 'option' "$optionNameIncludingHyphens" "$optionValue"
+			banias_reportsPath="$optionValue"
+		;;
+		
+	esac
+}
+
+_program_commandLine_handleNonOptions()
+{
+	core_variable_array_initialise banias_potentialReports
+	core_variable_array_append banias_potentialReports "$@"
+}
+
+_program_commandLine_validate()
+{
+	if core_variable_isUnset banias_reportsPath; then
+		banias_reportsPath="$banias_reportsPath_default"
+	else
+		core_validate_folderPathReadableAndSearchable $core_commandLine_exitCode_CONFIG 'configuration setting' 'banias_reportsPath' "$banias_reportsPath"
+	fi
+
+	if core_variable_isUnset banias_outputPath; then
+		banias_outputPath="$banias_outputPath_default"
+	else
+		core_validate_folderPathIsReadableAndSearchableAndWritableOrCanBeCreated $core_commandLine_exitCode_CONFIG 'configuration setting' 'banias_outputPath' "$banias_outputPath"
+	fi
+}
+
 . "$_program_libPath"/shellfire/core/init.functions "$@"

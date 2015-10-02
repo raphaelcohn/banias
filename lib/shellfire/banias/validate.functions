@@ -1,0 +1,109 @@
+# This file is part of banias. It is subject to the licence terms in the COPYRIGHT file found in the top-level directory of this distribution and at https://raw.githubusercontent.com/raphaelcohn/banias/master/COPYRIGHT. No part of banias, including this file, may be copied, modified, propagated, or distributed except according to the terms contained in the COPYRIGHT file.
+# Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/raphaelcohn/banias/master/COPYRIGHT.
+
+
+banias_validate_populatePotentialReportsIfNonOptionsEmpty()
+{
+	if ! core_variable_array_isEmpty banias_potentialReports; then
+		return 0
+	fi
+	
+	local report
+	pushd "$banias_reportsPath"
+	
+		set +f
+		for report in *
+		do
+			set -f
+			if [ -d "$report" ]; then
+				
+				# Exclude any folders that are '*.conf.d'
+				if [ "$report" != 'banias.conf.d' ]; then
+					core_variable_array_append banias_potentialReports "$report"
+				fi
+				
+			fi
+		done
+		set -f
+	popd
+}
+
+banias_validate_populateReportsCheckingTheyAreValid()
+{	
+	_banias_validate_populateReportsCheckingTheyAreValid_callback()
+	{
+		local potentialReportName="$core_variable_array_element"
+		
+		# Strip any trailing '/', as this makes our script more command-line friendly
+		local trailingSlashStrippedReportName="${potentialReportName%%/}"
+		
+		if ! banias_validate_reportIsValid "$trailingSlashStrippedReportName"; then
+			shouldFailDueToErrors=$((shouldFailDueToErrors+1))
+			return 0
+		fi
+		
+		core_variable_array_appendUniquely banias_reports "$trailingSlashStrippedReportName"
+	}
+
+	local shouldFailDueToErrors=0
+	
+	core_variable_array_initialise banias_reports
+	
+	core_variable_array_iterate banias_potentialReports _banias_validate_populateReportsCheckingTheyAreValid_callback
+		
+	if [ $shouldFailDueToErrors -ne 0 ]; then
+		local message
+		if [ $shouldFailDueToErrors -eq 1 ]; then
+			message="See previous 1 error"
+		else
+			message="See previous $shouldFailDueToErrors errors"
+		fi
+		core_exitError $core_commandLine_exitCode_USAGE "$message"
+	fi
+}
+
+banias_validate_reportIsValid()
+{
+	local trailingSlashStrippedReportName="$1"
+	
+	# Check for paths in report names (not allowed) [we should also check for ASCII NUL, but not possible in the dash shell]
+	local withoutAnySlashes="${trailingSlashStrippedReportName%%/*}"
+	if [ ${#withoutAnySlashes} -ne ${#trailingSlashStrippedReportName} ]; then
+		core_message FAIL "The REPORT '$trailingSlashStrippedReportName' can not contain a slash in its name (terminal slashes are stripped)"
+		return 1
+	fi
+	
+	local reportPath="$banias_reportsPath"/"$trailingSlashStrippedReportName"
+	if ! core_path_isReadableAndSearchableFolderPath "$reportPath"; then
+		core_message FAIL "The REPORT '$trailingSlashStrippedReportName' is not a readable, searchable folder path at '$reportPath'"
+		return 1
+	fi
+	
+	if ! banias_validate_reportIsValid_pandocHeaderFileIsPresent; then
+		return 1
+	fi
+	
+	if ! banias_validate_reportIsValid_pandocYamlMetadataFileIsPresent; then
+		return 1
+	fi
+	
+	return 0
+}
+
+banias_validate_reportIsValid_pandocHeaderFileIsPresent()
+{
+	local reportPandocHeaderFilePath="$reportPath"/"$trailingSlashStrippedReportName".pandoc
+	if ! core_path_isReadableNonEmptyFilePath "$reportPandocHeaderFilePath"; then
+		core_message FAIL "The REPORT '$trailingSlashStrippedReportName' does not contain a pandoc header file '$reportPandocHeaderFilePath'"
+		return 1
+	fi
+}
+
+banias_validate_reportIsValid_pandocYamlMetadataFileIsPresent()
+{
+	local reportPandocYamlMetadataFilePath="$reportPath"/"$trailingSlashStrippedReportName".yaml
+	if ! core_path_isReadableNonEmptyFilePath "$reportPandocYamlMetadataFilePath"; then
+		core_message FAIL "The REPORT '$trailingSlashStrippedReportName' does not contain a pandoc metadata YAML file '$reportPandocYamlMetadataFilePath'"
+		return 1
+	fi
+}

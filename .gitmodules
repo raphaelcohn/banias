@@ -4,3 +4,6 @@
 [submodule "lib/shellfire/core"]
 	path = lib/shellfire/core
 	url = https://github.com/shellfire-dev/core
+[submodule "lib/shellfire/configure"]
+	path = lib/shellfire/configure
+	url = https://github.com/shellfire-dev/configure.git

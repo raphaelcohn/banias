@@ -1,0 +1,173 @@
+# This file is part of banias. It is subject to the licence terms in the COPYRIGHT file found in the top-level directory of this distribution and at https://raw.githubusercontent.com/raphaelcohn/banias/master/COPYRIGHT. No part of banias, including this file, may be copied, modified, propagated, or distributed except according to the terms contained in the COPYRIGHT file.
+# Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/raphaelcohn/banias/master/COPYRIGHT.
+
+
+core_usesIn configure
+banias_report_create()
+{
+	local reportName="$core_variable_array_element"
+	local reportPath="$banias_reportsPath"/"$reportName"
+	local reportPandocHeaderFilePath="$reportPath"/"$reportName".pandoc
+	local reportPandocYamlMetadataFilePath="$reportPath"/"$reportName".yaml
+	local outputReportPdfFilePath="$banias_outputPath"/"$reportName".pdf
+	
+	banias_report_configure
+	banias_report_markdownToPdf
+	banias_report_openReportIfOnMacOsX
+}
+
+banias_report_configure()
+{
+	configure_reset banias
+	configure_source "$_program_etcPath" banias
+	configure_source ~/.banias banias
+	configure_source "$banias_reportsPath" banias
+	configure_source "$reportPath" banias
+	configure_validate banias
+}
+
+core_dependency_requires '*' pandoc
+banias_report_markdownToPdf()
+{
+	if core_variable_array_isSet _banias_report_pandocArguments; then
+		core_variable_array_unset _banias_report_pandocArguments
+	fi
+	
+	core_variable_array_initialise _banias_report_pandocArguments
+	
+	# TODO: Add  -H ../generate-report.template.tex
+	core_variable_array_append _banias_report_pandocArguments \
+		-o "$outputReportPdfFilePath" \
+		--from=markdown \
+		--latex-engine="$banias_latexEngine" \
+		--base-header-level=1
+	
+	local tocDepth="$(configure_getValue banias toc_depth)"
+	if [ $tocDepth -gt 0 ]; then
+		core_variable_array_append _banias_report_pandocArguments --toc --toc-depth="$tocDepth"
+	fi
+	
+	if core_variable_isTrue "$(configure_getValue banias number_sections)"; then
+		core_variable_array_append _banias_report_pandocArguments --number-sections
+	fi
+	
+	if core_variable_isTrue "$(configure_getValue banias preserve_tabs)"; then
+		core_variable_array_append _banias_report_pandocArguments --preserve-tabs
+	fi
+	
+	if core_variable_isFalse "$(configure_getValue banias tex_ligatures)"; then
+		core_variable_array_append _banias_report_pandocArguments --no-tex-ligatures
+	fi
+	
+	if core_variable_isTrue "$(configure_getValue banias smart)"; then
+		core_variable_array_append _banias_report_pandocArguments --smart
+	fi
+	
+	if core_variable_isTrue "$(configure_getValue banias chapters)"; then
+		core_variable_array_append _banias_report_pandocArguments --chapters
+	fi
+	
+	if core_variable_isTrue "$(configure_getValue banias listings)"; then
+		core_variable_array_append _banias_report_pandocArguments --listings
+	fi
+	
+	if core_variable_isTrue "$(configure_getValue banias links_as_notes)"; then
+		core_variable_array_append _banias_report_pandocArguments -V links-as-notes
+	fi
+	
+	if core_variable_isTrue "$(configure_getValue banias has_list_of_figures)"; then
+		core_variable_array_append _banias_report_pandocArguments -V lof
+	fi
+	
+	if core_variable_isTrue "$(configure_getValue banias has_list_of_tables)"; then
+		core_variable_array_append _banias_report_pandocArguments -V lot
+	fi
+	
+	if core_variable_isTrue "$(configure_getValue banias stretch_lines)"; then
+		core_variable_array_append _banias_report_pandocArguments -V linestretch
+	fi
+	
+	# Also papersize, lang, verbatim-in-note, strikeout, tables, graphics, abstract
+	# TODO: comma separated values
+	# http://pandoc.org/README.html#templates
+	core_variable_array_append _banias_report_pandocArguments -V linkcolor:"$(configure_getValue banias link_color)"
+	core_variable_array_append _banias_report_pandocArguments -V toccolor:"$(configure_getValue banias toc_color)"
+	core_variable_array_append _banias_report_pandocArguments -V urlcolor:"$(configure_getValue banias url_color)"
+	core_variable_array_append _banias_report_pandocArguments -V citecolor:"$(configure_getValue banias cite_color)"
+	
+	core_variable_array_append _banias_report_pandocArguments -V documentclass:"$(configure_getValue banias document_class)"
+	_banias_report_markdownToPdf_onlyIfNotEmpty classoption class_option # comma-separated
+	_banias_report_markdownToPdf_onlyIfNotEmpty papersize paper_size
+	_banias_report_markdownToPdf_onlyIfNotEmpty fontsize font_size
+	
+	_banias_report_markdownToPdf_onlyIfNotEmpty geometry geometry # comma-separated
+
+	core_variable_array_append _banias_report_pandocArguments -V fontfamily:"$(configure_getValue banias font_family)"
+	local fontOverrideOption
+	for fontOverrideOption in main sans mono math CJKmain
+	do
+		_banias_report_markdownToPdf_fontOverride "$fontOverrideOption"
+	done
+	
+	_banias_report_markdownToPdf_appendMarkdownFilesWithNewlineSeparators
+	
+	core_variable_array_append _banias_report_pandocArguments "$reportPandocHeaderFilePath"
+	core_variable_array_append _banias_report_pandocArguments "$reportPandocYamlMetadataFilePath"
+	core_variable_array_append _banias_report_pandocArguments "$_banias_reports_temporaryMarkdownFilePath"
+	
+	_banias_report_markdownToPdf_callback()
+	{
+		pandoc "$@"
+	}
+	
+	core_variable_array_passToFunctionAsArguments _banias_report_pandocArguments _banias_report_markdownToPdf_callback
+}
+
+_banias_report_markdownToPdf_onlyIfNotEmpty()
+{
+	local pandocVariable="$1"
+	local key="$2"
+	
+	local value="$(configure_getValue banias "$key")"
+	if [ -n "$value" ]; then
+		core_variable_array_append banias_report_pandocArguments -V "$pandocVariable":"$value"
+	fi
+}
+
+_banias_report_markdownToPdf_fontOverride()
+{
+	local font="$1"
+	
+	local fontOverridePandocVariable="${font}"font
+	local fontOverrideConfigureKey=font_"${font}"
+	
+	_banias_report_markdownToPdf_onlyIfNotEmpty "$fontOverridePandocVariable" "$fontOverrideConfigureKey"
+}
+
+core_dependency_requires '*' find sort cat
+_banias_report_markdownToPdf_appendMarkdownFilesWithNewlineSeparators()
+{
+	printf '' >"$_banias_reports_temporaryMarkdownFilePath"
+	
+	local fileName
+	find "$reportPath" -type f -name '*.md' | sort -d -f | while IFS= read -r fileName
+	do
+		cat "$fileName" >>"$_banias_reports_temporaryMarkdownFilePath"
+		printf '\n' >>"$_banias_reports_temporaryMarkdownFilePath"
+	done
+}
+
+core_dependency_requires '*' uname
+core_dependency_oneOf 'Homebrew' open
+banias_report_openReportIfOnMacOsX()
+{
+	case "$banias_uname" in
+		
+		Darwin)
+			if core_compatibility_whichNoOutput open; then
+				open "$outputReportPdfFilePath"
+			fi
+		;;
+	
+	esac
+}

@@ -1,0 +1,71 @@
+# This file is part of banias. It is subject to the licence terms in the COPYRIGHT file found in the top-level directory of this distribution and at https://raw.githubusercontent.com/raphaelcohn/banias/master/COPYRIGHT. No part of banias, including this file, may be copied, modified, propagated, or distributed except according to the terms contained in the COPYRIGHT file.
+# Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/raphaelcohn/banias/master/COPYRIGHT.
+
+
+banias_reports_makeReportsPathAbsolute()
+{
+	pushd "$banias_reportsPath"
+	
+		banias_reportsPath="$(pwd)"
+	
+	popd
+}
+
+core_dependency_requires '*' mkdir
+banias_reports_createOutputPathAndMakeItAbsolute()
+{
+	mkdir -m 0755 -p "$banias_outputPath"
+	pushd "$banias_outputPath"
+		
+		banias_outputPath="$(pwd)"
+		
+	popd
+}
+
+banias_reports_createTemporaryFileToConcatenateMarkdownTo()
+{
+	local TMP_FILE
+	core_temporaryFiles_newFileToRemoveOnExit
+	
+	_banias_reports_temporaryMarkdownFilePath="$TMP_FILE"
+}
+
+core_usesIn configure
+core_usesIn banias configure
+banias_reports_registerConfiguration()
+{
+	configure_register Value NotEmpty banias toc_depth 4
+	configure_register Value Boolean banias number_sections yes
+	configure_register Value Boolean banias tex_ligatures yes
+	configure_register Value Boolean banias smart yes
+	configure_register Value Boolean banias preserve_tabs yes
+	configure_register Value Boolean banias chapters yes
+	configure_register Value Boolean banias listings no
+	configure_register Value Boolean banias links_as_notes yes
+	configure_register Value Boolean banias has_list_of_figures yes
+	configure_register Value Boolean banias has_list_of_tables yes
+	configure_register Value Boolean banias stretch_lines no
+	configure_register Value LatexFontFamily banias font_family 'lmodern'
+	configure_register Value NotEmpty banias font_size '10pt'
+	configure_register Value Any banias font_main ''
+	configure_register Value Any banias font_sans ''
+	# Was 'Andale Mono'
+	configure_register Value Any banias font_mono ''
+	configure_register Value Any banias font_math ''
+	configure_register Value Any banias font_CJKmain ''
+	# also supports margin=1cm
+	configure_register Value NotEmpty banias geometry 'top=2cm, bottom=4cm, left=1.5cm, right=1.5cm'
+	configure_register Value LatexDocumentClass banias document_class 'report'
+	configure_register Value Any banias class_option ''
+	configure_register Value Any banias paper_size ''
+	configure_register Value LatexLinkColor banias link_color magenta
+	configure_register Value LatexLinkColor banias toc_color black
+	configure_register Value LatexLinkColor banias url_color blue
+	configure_register Value LatexLinkColor banias cite_color blue
+}
+
+core_usesIn banias report
+banias_reports_create()
+{
+	core_variable_array_iterate banias_reports banias_report_create
+}

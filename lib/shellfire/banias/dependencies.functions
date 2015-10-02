@@ -1,0 +1,56 @@
+# This file is part of banias. It is subject to the licence terms in the COPYRIGHT file found in the top-level directory of this distribution and at https://raw.githubusercontent.com/raphaelcohn/banias/master/COPYRIGHT. No part of banias, including this file, may be copied, modified, propagated, or distributed except according to the terms contained in the COPYRIGHT file.
+# Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/raphaelcohn/banias/master/COPYRIGHT.
+
+
+core_dependency_requires '*' uname
+banias_dependencies_populateUname()
+{
+	banias_uname="$(uname)"
+}
+
+# Not Cygwin, Homebrew or NetBSD
+core_dependency_requires 'CentOS' xelatex
+core_dependency_requires 'Debian' xelatex
+core_dependency_requires 'Fedora' xelatex
+core_dependency_requires 'FreeBSD' xelatex
+core_dependency_requires 'Mageia' xelatex
+core_dependency_requires 'OpenBSD' xelatex
+core_dependency_requires 'RedHat' xelatex
+core_dependency_requires 'SuSE' xelatex
+banias_dependencies_checkForPresenceOfLatex()
+{
+	banias_latexEngine='xelatex'
+	
+	case "$core_dependency_packageManager" in
+		
+		Homebrew)
+		
+			local texLiveLatexEngineLocation='/usr/texbin/xelatex'
+			local texLiveBasicLatexEngineLocation='/usr/local/texlive/2015basic/bin/x86_64-darwin/xelatex'
+			local tlmgrCommand='sudo /usr/local/texlive/2015basic/bin/x86_64-darwin/tlmgr install titlesec'
+		
+			if [ -x "$texLiveLatexEngineLocation" ]; then
+				banias_latexEngine="$texLiveLatexEngineLocation"
+			elif [ -x "$texLiveBasicLatexEngineLocation" ]; then
+				core_message NOTICE "When using BasicTeX 2015, make sure the CTAN package 'titlesec' is installed - eg $tlmgrCommand"
+				banias_latexEngine="$texLiveBasicLatexEngineLocation"
+			else
+				core_exitError $core_commandLine_exitCode_OSFILE "Please install TexLive for Mac OS X 2015, a 2.5Gb download, or its Basic equivalent, 100Mb from https://www.tug.org/mactex/; if using Basic, run $tlmgrCommand"
+			fi
+			
+		;;
+		
+		CentOS|Debian|Fedora|FreeBSD|OpenBSD)
+			banias_latexEngine='/usr/local/bin/xelatex'
+		;;
+		
+		Cygwin)
+			core_message WARN "This program has not been tested on Cygwin; please install TeXLive"
+		;;
+		
+		NetBSD)
+			core_message WARN "This program has not been tested on the package manager for $core_dependency_packageManager; it's not clear how to install TexLive's xelatex using pkgin"
+		;;
+			
+	esac
+}
