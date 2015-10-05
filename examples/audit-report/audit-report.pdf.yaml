@@ -1,0 +1,14 @@
+---
+# Include a Table of Contents, and, if so, which header depth to include?
+toc: true
+toc-depth: 3
+
+# Include a List of Tables?
+lot: true
+
+# Include a List of Figures?
+lof: true
+
+# Put numbers into headers? (Note, differs from option --number-sections)
+numbersections: true
+---

@@ -21,6 +21,7 @@
 
 ## TODO
 
+* Add in `---` before and after YAML documents in case it's missing
 * Explore figures
 * Explore embedding images
 * Yaml Metadata
@@ -30,6 +31,13 @@
   * Re-use the pandoc data-dir approach (overriding the user data dir or merging the pandoc directories together)
 * Bibliography
 * Embed revision history, authors from git
+* Explore default yaml for documents
+  * Default the 'lang' to english (en)
+  * Default the date from git revision
+  * Likewise, default the author [this is first author, not last author]
+  * ?default title to something obviously wrong?
+  * Could have default-per-format, too
+  * Consider generating 'lot: true' and 'lof: true' by detecting presence of tables with captions and figures
 * More formats
   * latex-snippet
   * html-snippet

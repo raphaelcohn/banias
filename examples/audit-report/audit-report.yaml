@@ -12,19 +12,6 @@ abstract: |
 preserve-tabs: true
 tab-stop: 4
 
-# Include a Table of Contents, and, if so, which header depth to include?
-toc: true
-toc-depth: 3
-
-# Include a List of Tables?
-lot: true
-
-# Include a List of Figures?
-lof: true
-
-# Put numbers into headers?
-number-sections: true
-
 # Smart Quoting, dash conversion (-- and ---), ellipsis conversion (...) and hard spaces (see: http://pandoc.org/README.html#reader-options, --smart)
 smart: true
 no-tex-ligatures: false

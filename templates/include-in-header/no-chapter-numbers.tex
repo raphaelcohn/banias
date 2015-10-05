@@ -1,0 +1,15 @@
+% http://superuser.com/questions/601469/getting-chapters-to-start-on-a-new-page-in-a-pandoc-generated-pdf
+% http://tex.stackexchange.com/questions/120740/how-do-i-remove-chapter-n-from-the-chapter-titles-of-a-book
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+
+%\newcommand{\sectionbreak}{\clearpage}
+\titleformat{\chapter}[display]{\normalfont\bfseries}{}{0pt}{\Large}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[RE]{\leftmark}
+\fancyhead[LO]{\rightmark}
+\fancyhead[LE,RO]{\thepage}
+\renewcommand\headrulewidth{0pt}
+\renewcommand\chaptermark[1]{\markboth{#1}{}} 
+\renewcommand\sectionmark[1]{\markright{\thesection.\ #1}}
