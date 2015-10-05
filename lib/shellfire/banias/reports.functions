@@ -34,34 +34,35 @@ core_usesIn configure
 core_usesIn banias configure
 banias_reports_registerConfiguration()
 {
-	configure_register Value NotEmpty banias toc_depth 4
-	configure_register Value Boolean banias number_sections yes
-	configure_register Value Boolean banias tex_ligatures yes
-	configure_register Value Boolean banias smart yes
-	configure_register Value Boolean banias preserve_tabs yes
-	configure_register Value Boolean banias chapters yes
-	configure_register Value Boolean banias listings no
-	configure_register Value Boolean banias links_as_notes yes
-	configure_register Value Boolean banias has_list_of_figures yes
-	configure_register Value Boolean banias has_list_of_tables yes
-	configure_register Value Boolean banias stretch_lines no
-	configure_register Value LatexFontFamily banias font_family 'lmodern'
-	configure_register Value NotEmpty banias font_size '10pt'
-	configure_register Value Any banias font_main ''
-	configure_register Value Any banias font_sans ''
-	# Was 'Andale Mono'
-	configure_register Value Any banias font_mono ''
-	configure_register Value Any banias font_math ''
-	configure_register Value Any banias font_CJKmain ''
-	# also supports margin=1cm
-	configure_register Value NotEmpty banias geometry 'top=2cm, bottom=4cm, left=1.5cm, right=1.5cm'
-	configure_register Value LatexDocumentClass banias document_class 'report'
-	configure_register Value Any banias class_option ''
-	configure_register Value Any banias paper_size ''
-	configure_register Value LatexLinkColor banias link_color magenta
-	configure_register Value LatexLinkColor banias toc_color black
-	configure_register Value LatexLinkColor banias url_color blue
-	configure_register Value LatexLinkColor banias cite_color blue
+	:
+	# configure_register Value NotEmpty banias toc_depth 4
+	# configure_register Value Boolean banias number_sections yes
+	# configure_register Value Boolean banias tex_ligatures yes
+	# configure_register Value Boolean banias smart yes
+	# configure_register Value Boolean banias preserve_tabs yes
+	# configure_register Value Boolean banias chapters yes
+	# configure_register Value Boolean banias listings no
+	# configure_register Value Boolean banias links_as_notes yes
+	# configure_register Value Boolean banias has_list_of_figures yes
+	# configure_register Value Boolean banias has_list_of_tables yes
+	# configure_register Value Boolean banias stretch_lines no
+	# configure_register Value LatexFontFamily banias font_family 'lmodern'
+	# configure_register Value NotEmpty banias font_size '10pt'
+	# configure_register Value Any banias font_main ''
+	# configure_register Value Any banias font_sans ''
+	# # Was 'Andale Mono'
+	# configure_register Value Any banias font_mono ''
+	# configure_register Value Any banias font_math ''
+	# configure_register Value Any banias font_CJKmain ''
+	# # also supports margin=1cm
+	# configure_register Value NotEmpty banias geometry 'top=2cm, bottom=4cm, left=1.5cm, right=1.5cm'
+	# configure_register Value LatexDocumentClass banias document_class 'report'
+	# configure_register Value Any banias class_option ''
+	# configure_register Value Any banias paper_size ''
+	# configure_register Value LatexLinkColor banias link_color magenta
+	# configure_register Value LatexLinkColor banias toc_color black
+	# configure_register Value LatexLinkColor banias url_color blue
+	# configure_register Value LatexLinkColor banias cite_color blue
 }
 
 core_usesIn banias report

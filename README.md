@@ -15,6 +15,7 @@
 * Explore embedding images
 * Templates
 * Bibliography
+* Embed revision history, authors from git
 
 [shellfire]: "https://github.com/shellfire-dev/shellfire" "shellfire homepage"
-[banias-samples]: "https://github.com/raphaelcohn/banias-samples" "banias homepage"
+[banias]: "https://github.com/raphaelcohn/banias" "banias homepage"

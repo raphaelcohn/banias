@@ -1,21 +1,80 @@
 ---
 title:  'This is the title: it contains a colon'
 author: © 2015 stormmq Limited. Example only.
-date: October 3rd, 2015
+date: 'October 3rd, 2015'
+lang: en
 abstract: |
   This is the abstract. Again.
   
   It consists of two paragraph.
+
+# Preserve tabs in code sections (the default is true); if false, then tab-stop affects how many spaces to use
+preserve-tabs: true
+tab-stop: 4
+
+# Include a Table of Contents, and, if so, which header depth to include?
 toc: true
 toc-depth: 3
+
+# Include a List of Tables?
 lot: true
+
+# Include a List of Figures?
 lof: true
+
+# Put numbers into headers?
+number-sections: true
+
+# Smart Quoting, dash conversion (-- and ---), ellipsis conversion (...) and hard spaces (see: http://pandoc.org/README.html#reader-options, --smart)
 smart: true
 no-tex-ligatures: false
+
+# Make H1 headers into chapters?
 chapters: true
-listings: true
+
+# Makes links footnotes?
 links-as-notes: true
+
 linestretch: false
-preserve-tabs: true
-number-sections: true
+listings: true
+
+# May be one of bookman, utopia, fourier, fouriernc, times, txfonts, mathpazo, pxfonts, mathpple, libertine, arev, lmodern
+# No impact with xelatex
+#fontfamily: lmodern
+# No impact with xelatex
+#fontsize: 12pt
+mainfont: 'Raleway'
+# sansfont: 'Andale Mono'
+# monofont: 'Andale Mono'
+# mathfont: 'Andale Mono'
+# CJKmainfont: 'Andale Mono'
+
+# These colors are one of red, green, magenta, cyan, blue, black
+linkcolor: magenta
+toccolor: black
+urlcolor: blue
+citecolor: blue
+
+# May be one of document, book, memoir, report, article, letter, proc, minimal or beamer
+documentclass: report
+# Comma-Space-separated; relevant to documentclass
+# twoside, oneside
+#classoption: oneside
+# a0paper -> a6paper, b0paper -> b6paper, letterpaper, legalpaper, executivepaper; default is US letter see https://en.wikibooks.org/wiki/LaTeX/Page_Layout
+papersize: a4paper
+# # also supports margin=1cm
+# To change paper size, can use eg paperwidth=5.5in, paperheight=8.5in
+geometry: 'top=2cm, bottom=4cm, left=1.5cm, right=1.5cm'
+
+# header-includes:
+# 	- path/to/file
+# 	- path/to/another/file
+#
+# include-before:
+# 	- path/to/file
+# 	- path/to/another/file
+#
+# include-after:
+# 	- path/to/file
+# 	- path/to/another/file
 ---
