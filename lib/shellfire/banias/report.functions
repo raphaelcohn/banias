@@ -8,11 +8,52 @@ banias_report_create()
 	local reportName="$core_variable_array_element"
 	local reportPath="$banias_reportsPath"/"$reportName"
 	local reportPandocYamlMetadataFilePath="$reportPath"/"$reportName".yaml
-	local outputReportPdfFilePath="$banias_outputPath"/"$reportName".pdf
+	local outputReportFilePathWithoutExtension="$banias_outputPath"/"$reportName"
+	local outputReportFilePath
 	
+	banias_report_resetPandocArguments
 	banias_report_configure
-	banias_report_markdownToPdf
-	banias_report_openReportIfOnMacOsX
+	banias_report_setFormatSpecificArguments
+	banias_report_markdownToPdfOrLatex
+	banias_report_openReportIfPdfAndOnMacOsX
+}
+
+banias_report_resetPandocArguments()
+{
+	if core_variable_array_isSet _banias_report_pandocArguments; then
+		core_variable_array_unset _banias_report_pandocArguments
+	fi
+	
+	core_variable_array_initialise _banias_report_pandocArguments
+	
+	core_variable_array_append _banias_report_pandocArguments \
+		--from=markdown \
+		--normalize \
+		--base-header-level=1
+}
+
+banias_report_setFormatSpecificArguments()
+{
+	case "$banias_format" in
+		
+		pdf)
+			outputReportFilePath="$outputReportFilePathWithoutExtension".pdf
+		;;
+		
+		latex)
+			outputReportFilePath="$outputReportFilePathWithoutExtension".tex
+			core_variable_array_append _banias_report_pandocArguments \
+				--standalone
+		;;
+		
+		html)
+			outputReportFilePath="$outputReportFilePathWithoutExtension".html
+		;;
+		
+	esac
+	
+	core_variable_array_append _banias_report_pandocArguments \
+		-o "$outputReportFilePath"
 }
 
 banias_report_configure()
@@ -26,21 +67,12 @@ banias_report_configure()
 }
 
 core_dependency_requires '*' pandoc
-banias_report_markdownToPdf()
-{
-	if core_variable_array_isSet _banias_report_pandocArguments; then
-		core_variable_array_unset _banias_report_pandocArguments
-	fi
-	
-	core_variable_array_initialise _banias_report_pandocArguments
-	
-	# TODO: Add  -H ../generate-report.template.tex
+banias_report_markdownToPdfOrLatex()
+{	
+	# TODO: Add  -H audit-report.template.tex
 	core_variable_array_append _banias_report_pandocArguments \
-		-o "$outputReportPdfFilePath" \
-		--from=markdown \
-		--latex-engine="$banias_latexEngine" \
-		--normalize \
-		--base-header-level=1
+		--to=latex \
+		--latex-engine="$banias_latexEngine"
 	
 	# local tocDepth="$(configure_getValue banias toc_depth)"
 	# if [ $tocDepth -gt 0 ]; then
@@ -116,7 +148,11 @@ banias_report_markdownToPdf()
 	
 	_banias_report_markdownToPdf_callback()
 	{
-		pandoc "$@"
+		pushd "$reportPath"
+		
+			pandoc "$@"
+			
+		popd
 	}
 	
 	core_variable_array_passToFunctionAsArguments _banias_report_pandocArguments _banias_report_markdownToPdf_callback
@@ -158,13 +194,17 @@ _banias_report_markdownToPdf_appendMarkdownFilesWithNewlineSeparators()
 
 core_dependency_requires '*' uname
 core_dependency_oneOf 'Homebrew' open
-banias_report_openReportIfOnMacOsX()
+banias_report_openReportIfPdfAndOnMacOsX()
 {
+	if [ "$banias_format" != 'pdf' ]; then
+		return 0
+	fi
+	
 	case "$banias_uname" in
 		
 		Darwin)
 			if core_compatibility_whichNoOutput open; then
-				open "$outputReportPdfFilePath"
+				open "$outputReportFilePath"
 			fi
 		;;
 	

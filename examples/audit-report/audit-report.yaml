@@ -66,7 +66,8 @@ papersize: a4paper
 # To change paper size, can use eg paperwidth=5.5in, paperheight=8.5in
 geometry: 'top=2cm, bottom=4cm, left=1.5cm, right=1.5cm'
 
-# header-includes:
+# This is literally including the text!
+#header-includes: ['audit-report.template.tex']
 # 	- path/to/file
 # 	- path/to/another/file
 #

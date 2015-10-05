@@ -34,6 +34,7 @@ _program_commandLine_parseInitialise()
 {
 	banias_reportsPath_default="$(pwd)"
 	banias_outputPath_default="$banias_reportsPath_default"
+	banias_format_default='pdf'
 }
 
 _program_commandLine_helpMessage()
@@ -46,11 +47,14 @@ _program_commandLine_helpMessage()
                            Defaults to '$banias_reportsPath_default'.
   -o, --output-path PATH   PATH to folder of output.
                            Defaults to '$banias_outputPath_default'.
+  -f, --format FORMAT      FORMAT (one of pdf or latex)
+                           Defaults to '$banias_format_default'.
 If REPORTs are unspecified, all reports are used"
     _program_commandLine_helpMessage_optionsSpacing='   '
 	_program_commandLine_helpMessage_configurationKeys="
   banias_reportsPath  Equivalent to --reports-path
   banias_outputPath   Equivalent to --output-path
+  banias_format       Equivalent to --format
 "
 	_program_commandLine_helpMessage_examples="
   ${_program_name} my-report
@@ -66,6 +70,10 @@ _program_commandLine_optionExists()
 		;;
 		
 		r|reports-path)
+			echo 'yes-argumented'
+		;;
+		
+		f|format)
 			echo 'yes-argumented'
 		;;
 		
@@ -95,6 +103,11 @@ _program_commandLine_processOptionWithArgument()
 			banias_reportsPath="$optionValue"
 		;;
 		
+		f|format)
+			banias_validate_format $core_commandLine_exitCode_USAGE 'option' "$optionNameIncludingHyphens" "$optionValue"
+			banias_format="$optionValue"
+		;;
+		
 	esac
 }
 
@@ -116,6 +129,12 @@ _program_commandLine_validate()
 		banias_outputPath="$banias_outputPath_default"
 	else
 		core_validate_folderPathIsReadableAndSearchableAndWritableOrCanBeCreated $core_commandLine_exitCode_CONFIG 'configuration setting' 'banias_outputPath' "$banias_outputPath"
+	fi
+
+	if core_variable_isUnset banias_format; then
+		banias_format="$banias_format_default"
+	else
+		banias_validate_format $core_commandLine_exitCode_CONFIG 'configuration setting' 'banias_format' "$banias_format"
 	fi
 }
 

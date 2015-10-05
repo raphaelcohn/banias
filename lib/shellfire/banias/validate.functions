@@ -2,6 +2,18 @@
 # Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/raphaelcohn/banias/master/COPYRIGHT.
 
 
+banias_validate_format()
+{
+	local code=$1
+	local category="$2"
+	local name="$3"
+	local value="$4"
+	
+	if [ -z "$value" ]; then
+		core_validate_exit "The $category '$name' specifies a format '$value' which is not one of 'pdf' or 'latex'"
+	fi
+}
+
 banias_validate_populatePotentialReportsIfNonOptionsEmpty()
 {
 	if ! core_variable_array_isEmpty banias_potentialReports; then
