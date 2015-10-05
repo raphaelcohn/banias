@@ -56,7 +56,7 @@ banias_templates_append()
 	
 }
 
-core_dependency_requires '*' find sort awk
+core_dependency_requires '*' find sort
 _banias_templates_createTemporaryList()
 {
 	local templateFragmentKindFolderPath="$1"
@@ -65,7 +65,13 @@ _banias_templates_createTemporaryList()
 	if core_path_isReadableAndSearchableFolderPath "$templateFragmentKindFolderPath"; then
 		pushd "$templateFragmentKindFolderPath"
 			
-			find . -depth 1 -type f -name '*.'${templateFragmentFileExtension} | sort -d -f | awk -v FS='\0' -v OFS='\t' "{print \$1,\"$templateFragmentKindFolderPath\"}" >"$temporaryFile"
+			{
+				local filePath
+				find . -depth 1 -type f -name '*.'${templateFragmentFileExtension} | sort -d -f | while IFS= read -r filePath
+				do
+					printf '%s\t%s' "$filePath" "$templateFragmentKindFolderPath"
+				done
+			} >"$temporaryFile"
 			
 		popd
 	else
