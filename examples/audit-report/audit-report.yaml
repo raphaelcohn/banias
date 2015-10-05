@@ -2,9 +2,20 @@
 title:  'This is the title: it contains a colon'
 author: © 2015 stormmq Limited. Example only.
 date: October 3rd, 2015
-tags: [nothing, nothingness]
 abstract: |
-  This is the abstract.
-
-  It consists of two paragraphs.	
+  This is the abstract. Again.
+  
+  It consists of two paragraph.
+toc: true
+toc-depth: 3
+lot: true
+lof: true
+smart: true
+no-tex-ligatures: false
+chapters: true
+listings: true
+links-as-notes: true
+linestretch: false
+preserve-tabs: true
+number-sections: true
 ---

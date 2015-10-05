@@ -7,7 +7,6 @@ banias_report_create()
 {
 	local reportName="$core_variable_array_element"
 	local reportPath="$banias_reportsPath"/"$reportName"
-	local reportPandocHeaderFilePath="$reportPath"/"$reportName".pandoc
 	local reportPandocYamlMetadataFilePath="$reportPath"/"$reportName".yaml
 	local outputReportPdfFilePath="$banias_outputPath"/"$reportName".pdf
 	
@@ -89,6 +88,10 @@ banias_report_markdownToPdf()
 	
 	# Also papersize, lang, verbatim-in-note, strikeout, tables, graphics, abstract
 	# TODO: comma separated values
+	
+	
+	echo "Comma-separated values for geometry and classoption TODO TODO TODO"
+	
 	# http://pandoc.org/README.html#templates
 	core_variable_array_append _banias_report_pandocArguments -V linkcolor:"$(configure_getValue banias link_color)"
 	core_variable_array_append _banias_report_pandocArguments -V toccolor:"$(configure_getValue banias toc_color)"
@@ -111,9 +114,10 @@ banias_report_markdownToPdf()
 	
 	_banias_report_markdownToPdf_appendMarkdownFilesWithNewlineSeparators
 	
-	core_variable_array_append _banias_report_pandocArguments "$reportPandocHeaderFilePath"
 	core_variable_array_append _banias_report_pandocArguments "$reportPandocYamlMetadataFilePath"
 	core_variable_array_append _banias_report_pandocArguments "$_banias_reports_temporaryMarkdownFilePath"
+	
+	# See https://tex.stackexchange.com/questions/139139/adding-headers-and-footers-using-pandoc
 	
 	_banias_report_markdownToPdf_callback()
 	{

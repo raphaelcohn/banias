@@ -79,24 +79,11 @@ banias_validate_reportIsValid()
 		return 1
 	fi
 	
-	if ! banias_validate_reportIsValid_pandocHeaderFileIsPresent; then
-		return 1
-	fi
-	
 	if ! banias_validate_reportIsValid_pandocYamlMetadataFileIsPresent; then
 		return 1
 	fi
 	
 	return 0
-}
-
-banias_validate_reportIsValid_pandocHeaderFileIsPresent()
-{
-	local reportPandocHeaderFilePath="$reportPath"/"$trailingSlashStrippedReportName".pandoc
-	if ! core_path_isReadableNonEmptyFilePath "$reportPandocHeaderFilePath"; then
-		core_message FAIL "The REPORT '$trailingSlashStrippedReportName' does not contain a pandoc header file '$reportPandocHeaderFilePath'"
-		return 1
-	fi
 }
 
 banias_validate_reportIsValid_pandocYamlMetadataFileIsPresent()
