@@ -12,3 +12,10 @@ Hello world. This is a report.
 
   : Demonstration of pipe table syntax.
 
+## Sample Figure
+
+This is a figure of Banias Spring, using pandoc's `implicit_figures` extension.
+
+![Banias Spring and Pan's Cave](images/banias-spring.jpg "Banias Spring and Pan's Cave from Wikipedia")
+
+Some text after the figure.

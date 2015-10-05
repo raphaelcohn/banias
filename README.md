@@ -21,9 +21,8 @@
 
 ## TODO
 
+* Pandoc-as-a-service (solves a lot of deployment issues)
 * Add in `---` before and after YAML documents in case it's missing
-* Explore figures
-* Explore embedding images
 * Yaml Metadata
   * Explore a folder-based approach (like conf.d) to allow re-use of snippets
   * Do this at a reports level, too
