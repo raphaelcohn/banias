@@ -4,7 +4,7 @@
 
 _program()
 {
-	core_usesIn banias dependencies validate reports
+	core_usesIn banias dependencies validate reports templates
     banias()
     {
 		banias_dependencies_populateUname
@@ -16,6 +16,7 @@ _program()
 		
 		banias_reports_createOutputPathAndMakeItAbsolute
 		banias_reports_createTemporaryFileToConcatenateMarkdownTo
+		banias_templates_initialise
 		banias_reports_registerConfiguration
         banias_reports_create
     }

@@ -1,0 +1,88 @@
+# This file is part of banias. It is subject to the licence terms in the COPYRIGHT file found in the top-level directory of this distribution and at https://raw.githubusercontent.com/raphaelcohn/banias/master/COPYRIGHT. No part of banias, including this file, may be copied, modified, propagated, or distributed except according to the terms contained in the COPYRIGHT file.
+# Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/raphaelcohn/banias/master/COPYRIGHT.
+
+
+banias_templates_initialise()
+{
+	local TMP_FILE
+	
+	core_temporaryFiles_newFileToRemoveOnExit
+	_banias_templates_reportsTemporaryList="$TMP_FILE"
+	
+	core_temporaryFiles_newFileToRemoveOnExit
+	_banias_templates_reportTemporaryList="$TMP_FILE"
+	
+	core_temporaryFiles_newFileToRemoveOnExit
+	_banias_templates_joinedTemporaryList="$TMP_FILE"
+}
+
+core_dependency_requires '*' join
+banias_templates_append()
+{
+	local pandocDefaultTemplateFileName=default.${pandocTemplateFileExtension}
+	
+	local reportsTemplatesFolderPath="$banias_reportsPath"/templates
+	local reportTemplatesFolderPath="$reportPath"/templates
+	
+	_banias_templates_appendDefaultTemplateIfPresent
+	
+	# We could use rsync to create the merged templates list...
+	
+	local templateFragmentKind
+	local reportsTemplateFragmentKindFolderPath
+	local reportTemplateFragmentKindFolderPath
+	for templateFragmentKind in include-in-header include-before-body include-after-body
+	do
+		
+		reportsTemplateFragmentKindFolderPath="$reportsTemplatesFolderPath"/"$templateFragmentKind"
+		reportTemplateFragmentKindFolderPath="$reportTemplatesFolderPath"/"$templateFragmentKind"
+		
+		_banias_templates_createTemporaryList "$reportsTemplateFragmentKindFolderPath" "$_banias_templates_reportsTemporaryList"
+		_banias_templates_createTemporaryList "$reportTemplateFragmentKindFolderPath" "$_banias_templates_reportTemporaryList"
+
+		local separator="$(printf '\t')"
+		join -t "$separator" -a 1 -a 2 "$_banias_templates_reportTemporaryList" "$_banias_templates_reportsTemporaryList" >"$_banias_templates_joinedTemporaryList"
+		
+		local templateFragmentRelativeFilePath
+		local templateFragmentParentFolderPath
+		local overwrittenIfInBothListsJunk
+		while IFS="$separator" read -r templateFragmentFilePath templateFragmentParentFolderPath overwrittenIfInBothListsJunk
+		do
+			core_variable_array_append _banias_report_pandocArguments \
+				--${templateFragmentKind} "$templateFragmentParentFolderPath"/"$templateFragmentFilePath"
+			
+		done <"$_banias_templates_joinedTemporaryList"
+	done
+	
+}
+
+core_dependency_requires '*' find sort awk
+_banias_templates_createTemporaryList()
+{
+	local templateFragmentKindFolderPath="$1"
+	local temporaryFile="$2"
+	
+	if core_path_isReadableAndSearchableFolderPath "$templateFragmentKindFolderPath"; then
+		pushd "$templateFragmentKindFolderPath"
+			
+			find . -depth 1 -type f -name '*.'${templateFragmentFileExtension} | sort -d -f | awk -v FS='\0' -v OFS='\t' "{print \$1,\"$templateFragmentKindFolderPath\"}" >"$temporaryFile"
+			
+		popd
+	else
+		printf '' >"$temporaryFile"
+	fi
+}
+
+_banias_templates_appendDefaultTemplateIfPresent()
+{
+	local reportsDefaultTemplateFolderPath="$reportsTemplatesFolderPath"/"$pandocDefaultTemplateFileName"
+	local reportDefaultTemplateFolderPath="$reportTemplatesFolderPath"/"$pandocDefaultTemplateFileName"
+	
+	if core_path_isReadableNonEmptyFilePath "$reportDefaultTemplateFolderPath"; then
+		core_variable_array_append _banias_report_pandocArguments \
+			--template "$reportsDefaultTemplateFolderPath"
+	elif core_path_isReadableNonEmptyFilePath "$reportsDefaultTemplateFolderPath"; then
+		core_variable_array_append _banias_report_pandocArguments \
+			--template "$reportDefaultTemplateFolderPath"
+	fi
+}

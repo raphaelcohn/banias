@@ -14,8 +14,17 @@
 * Explore figures
 * Explore embedding images
 * Templates
+  * Per-document
+    * Allow full template
+	* Allow header, body-before, body-after includes
+  * Per-folder
+  * Re-use the pandoc data-dir approach (overriding the user data dir or merging the pandoc directories together)
 * Bibliography
 * Embed revision history, authors from git
+* More formats
+  * latex-snippet
+  * html-snippet
+  * html-standalone
 
 [shellfire]: "https://github.com/shellfire-dev/shellfire" "shellfire homepage"
 [banias]: "https://github.com/raphaelcohn/banias" "banias homepage"

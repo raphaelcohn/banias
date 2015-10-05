@@ -29,10 +29,18 @@ banias_validate_populatePotentialReportsIfNonOptionsEmpty()
 			set -f
 			if [ -d "$report" ]; then
 				
-				# Exclude any folders that are '*.conf.d'
-				if [ "$report" != 'banias.conf.d' ]; then
-					core_variable_array_append banias_potentialReports "$report"
-				fi
+				case "$report" in
+				
+					# Exclude any special folders
+					banias.conf.d|templates)
+						:
+					;;
+					
+					*)
+						core_variable_array_append banias_potentialReports "$report"
+					;;
+					
+				esac
 				
 			fi
 		done

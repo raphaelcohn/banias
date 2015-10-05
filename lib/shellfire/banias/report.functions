@@ -9,6 +9,9 @@ banias_report_create()
 	local reportPath="$banias_reportsPath"/"$reportName"
 	local reportPandocYamlMetadataFilePath="$reportPath"/"$reportName".yaml
 	local outputReportFilePathWithoutExtension="$banias_outputPath"/"$reportName"
+	local pandocTemplateFileExtension
+	local templateFragmentFileExtension
+	local outputReportFileExtension
 	local outputReportFilePath
 	
 	banias_report_resetPandocArguments
@@ -37,20 +40,32 @@ banias_report_setFormatSpecificArguments()
 	case "$banias_format" in
 		
 		pdf)
-			outputReportFilePath="$outputReportFilePathWithoutExtension".pdf
+			pandocTemplateFileExtension=latex
+			templateFragmentFileExtension=tex
+			outputReportFileExtension=pdf
 		;;
 		
 		latex)
-			outputReportFilePath="$outputReportFilePathWithoutExtension".tex
+			pandocTemplateFileExtension=latex
+			templateFragmentFileExtension=tex
+			outputReportFileExtension=tex
 			core_variable_array_append _banias_report_pandocArguments \
 				--standalone
 		;;
 		
 		html)
-			outputReportFilePath="$outputReportFilePathWithoutExtension".html
+			pandocTemplateFileExtension=html
+			templateFragmentFileExtension=html
+			outputReportFileExtension=html
+		;;
+		
+		*)
+			core_exit_error $core_commandLine_exitCode_SOFTWARE "Unknown banias_format '$banias_format'"
 		;;
 		
 	esac
+	
+	outputReportFilePath="$outputReportFilePathWithoutExtension".${outputReportFileExtension}
 	
 	core_variable_array_append _banias_report_pandocArguments \
 		-o "$outputReportFilePath"
@@ -66,78 +81,20 @@ banias_report_configure()
 	configure_validate banias
 }
 
+core_usesIn banias templates
 core_dependency_requires '*' pandoc
 banias_report_markdownToPdfOrLatex()
-{	
-	# TODO: Add  -H audit-report.template.tex
+{
 	core_variable_array_append _banias_report_pandocArguments \
 		--to=latex \
 		--latex-engine="$banias_latexEngine"
 	
-	# local tocDepth="$(configure_getValue banias toc_depth)"
-	# if [ $tocDepth -gt 0 ]; then
-	# 	core_variable_array_append _banias_report_pandocArguments --toc --toc-depth="$tocDepth"
-	# fi
-	#
+	banias_templates_append 
+	
 	# if core_variable_isTrue "$(configure_getValue banias number_sections)"; then
 	# 	core_variable_array_append _banias_report_pandocArguments --number-sections
 	# fi
-	#
-	# if core_variable_isTrue "$(configure_getValue banias preserve_tabs)"; then
-	# 	core_variable_array_append _banias_report_pandocArguments --preserve-tabs
-	# fi
-	#
-	# if core_variable_isFalse "$(configure_getValue banias tex_ligatures)"; then
-	# 	core_variable_array_append _banias_report_pandocArguments --no-tex-ligatures
-	# fi
-	#
-	# if core_variable_isTrue "$(configure_getValue banias smart)"; then
-	# 	core_variable_array_append _banias_report_pandocArguments --smart
-	# fi
-	#
-	# if core_variable_isTrue "$(configure_getValue banias chapters)"; then
-	# 	core_variable_array_append _banias_report_pandocArguments --chapters
-	# fi
-	#
-	# if core_variable_isTrue "$(configure_getValue banias listings)"; then
-	# 	core_variable_array_append _banias_report_pandocArguments --listings
-	# fi
-	#
-	# if core_variable_isTrue "$(configure_getValue banias links_as_notes)"; then
-	# 	core_variable_array_append _banias_report_pandocArguments -V links-as-notes
-	# fi
-	#
-	# if core_variable_isTrue "$(configure_getValue banias has_list_of_figures)"; then
-	# 	core_variable_array_append _banias_report_pandocArguments -V lof
-	# fi
-	#
-	# if core_variable_isTrue "$(configure_getValue banias has_list_of_tables)"; then
-	# 	core_variable_array_append _banias_report_pandocArguments -V lot
-	# fi
-	#
-	# if core_variable_isTrue "$(configure_getValue banias stretch_lines)"; then
-	# 	core_variable_array_append _banias_report_pandocArguments -V linestretch
-	# fi
-	
-	# http://pandoc.org/README.html#templates
 	# core_variable_array_append _banias_report_pandocArguments -V linkcolor:"$(configure_getValue banias link_color)"
-	# core_variable_array_append _banias_report_pandocArguments -V toccolor:"$(configure_getValue banias toc_color)"
-	# core_variable_array_append _banias_report_pandocArguments -V urlcolor:"$(configure_getValue banias url_color)"
-	# core_variable_array_append _banias_report_pandocArguments -V citecolor:"$(configure_getValue banias cite_color)"
-	#
-	# core_variable_array_append _banias_report_pandocArguments -V documentclass:"$(configure_getValue banias document_class)"
-	# _banias_report_markdownToPdf_onlyIfNotEmpty classoption class_option # comma-separated
-	# _banias_report_markdownToPdf_onlyIfNotEmpty papersize paper_size
-	# _banias_report_markdownToPdf_onlyIfNotEmpty fontsize font_size
-	#
-	# _banias_report_markdownToPdf_onlyIfNotEmpty geometry geometry # comma-separated
-	#
-	# core_variable_array_append _banias_report_pandocArguments -V fontfamily:"$(configure_getValue banias font_family)"
-	# local fontOverrideOption
-	# for fontOverrideOption in main sans mono math CJKmain
-	# do
-	# 	_banias_report_markdownToPdf_fontOverride "$fontOverrideOption"
-	# done
 	
 	_banias_report_markdownToPdf_appendMarkdownFilesWithNewlineSeparators
 	
@@ -167,16 +124,6 @@ _banias_report_markdownToPdf_onlyIfNotEmpty()
 	if [ -n "$value" ]; then
 		core_variable_array_append banias_report_pandocArguments -V "$pandocVariable":"$value"
 	fi
-}
-
-_banias_report_markdownToPdf_fontOverride()
-{
-	local font="$1"
-	
-	local fontOverridePandocVariable="${font}"font
-	local fontOverrideConfigureKey=font_"${font}"
-	
-	_banias_report_markdownToPdf_onlyIfNotEmpty "$fontOverridePandocVariable" "$fontOverrideConfigureKey"
 }
 
 core_dependency_requires '*' find sort cat
