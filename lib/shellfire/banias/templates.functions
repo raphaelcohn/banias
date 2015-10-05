@@ -16,6 +16,8 @@ banias_templates_initialise()
 	_banias_templates_joinedTemporaryList="$TMP_FILE"
 }
 
+# An alternative design, that avoids multiple calls of join, find and sort might be to do rsync --dry-run
+# There are other strategies for deciding which templates to use (combine all, just use the report's ones, if default.latex overwritten by the report use its, etc)
 core_dependency_requires '*' join
 banias_templates_append()
 {

@@ -8,6 +8,7 @@ banias_report_create()
 	local reportName="$core_variable_array_element"
 	local reportPath="$banias_reportsPath"/"$reportName"
 	local reportPandocYamlMetadataFilePath="$reportPath"/"$reportName".yaml
+	local reportPandocYamlFormatSpecificMetadataFilePath="$reportPath"/"$reportName"."$banias_format".yaml
 	local outputReportFilePathWithoutExtension="$banias_outputPath"/"$reportName"
 	local pandocTemplateFileExtension
 	local templateFragmentFileExtension
@@ -98,6 +99,9 @@ banias_report_markdownToPdfOrLatex()
 	
 	_banias_report_markdownToPdf_appendMarkdownFilesWithNewlineSeparators
 	
+	if core_path_isReadableNonEmptyFilePath "$reportPandocYamlFormatSpecificMetadataFilePath"; then
+		core_variable_array_append _banias_report_pandocArguments "$reportPandocYamlFormatSpecificMetadataFilePath"
+	fi
 	core_variable_array_append _banias_report_pandocArguments "$reportPandocYamlMetadataFilePath"
 	core_variable_array_append _banias_report_pandocArguments "$_banias_reports_temporaryMarkdownFilePath"
 	
