@@ -9,9 +9,17 @@ banias_validate_format()
 	local name="$3"
 	local value="$4"
 	
-	if [ -z "$value" ]; then
-		core_validate_exit "The $category '$name' specifies a format '$value' which is not one of 'pdf' or 'latex'"
-	fi
+	case "$value" in
+		
+		pdf|latex)
+			:
+		;;
+		
+		*)
+			core_validate_exit "The $category '$name' specifies a format '$value' which is not one of 'pdf' or 'latex'"
+		;;
+		
+	esac
 }
 
 banias_validate_populatePotentialReportsIfNonOptionsEmpty()
