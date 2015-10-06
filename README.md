@@ -22,12 +22,20 @@
 ## TODO
 
 * Pandoc-as-a-service (solves a lot of deployment issues)
+  * <http://www.docverter.com/api#Conversions>
 * Add in `---` before and after YAML documents in case it's missing
 * Yaml Metadata
   * Explore a folder-based approach (like conf.d) to allow re-use of snippets
   * Do this at a reports level, too
+  * Explore using `pandoc-options: -VstandardWaiver=$(cat include/standardWaiver.md)` (see https://groups.google.com/forum/#!topic/pandoc-discuss/pe63zLmNwtk) 
 * Templates
   * Re-use the pandoc data-dir approach (overriding the user data dir or merging the pandoc directories together)
+* Pre-Processing
+  * Generation of images (eg stormmq logo from vector graphics)
+* Images
+  * What about when using HTML? Can we differentiate between embedded and re-used?
+* Formatting
+  * Nice borders for figures in PDFs (but not inline images, perhaps)
 * Bibliography
 * Embed revision history, authors from git
 * Explore default yaml for documents
