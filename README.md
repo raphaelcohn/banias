@@ -24,6 +24,7 @@
 * Pandoc-as-a-service (solves a lot of deployment issues)
   * <http://www.docverter.com/api#Conversions>
 * Add in `---` before and after YAML documents in case it's missing
+  * Could use the `file` command to detect YAML
 * Yaml Metadata
   * Explore a folder-based approach (like conf.d) to allow re-use of snippets
   * Do this at a reports level, too
@@ -50,6 +51,10 @@
   * html-snippet
   * html
 * Explore: Unlike [pandoc], [banias] has separate templates for PDFs and Latex; this is because they differ in needs
+* Review:-
+  * Filter support: <https://github.com/jgm/pandoc/wiki/Pandoc-Filters>
+  * `curl -LH "Accept: text/bibliography; style=bibtex" "http://dx.doi.org/10.1017/S0022112061000019"` citations!
+  * <https://github.com/jgm/pandoc/issues/813>
 
 [shellfire]: "https://github.com/shellfire-dev/shellfire" "shellfire homepage"
 [banias]: "https://github.com/raphaelcohn/banias" "banias homepage"
