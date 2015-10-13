@@ -3,9 +3,50 @@ This file is part of banias. It is subject to the licence terms in the COPYRIGHT
 Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/raphaelcohn/banias/master/COPYRIGHT.
 ]]--
 
+
+-- We could run all transformations through a generic wrapper and pass an environment variable for the actual transformation to run
+
+local function dirname(path)
+	if path:match('.-/.-') then
+		return path:gsub('(.*/)(.*)', '%1')
+	else
+		return ''
+	end
+end
+
+-- Ideally, we need to use realpath to resolve symlinks
+local function findOurPath()
+	local arg0 = debug.getinfo(findOurPath, 'S').source
+	local parentFolderPath = dirname(arg0)
+	if parentFolderPath == '' then
+		return './'
+	end
+	return parentFolderPath
+end
+
+local function initialiseSerarchPath()
+	local path = findOurPath()
+	package.path = path .. '?.lua;' .. path .. '?/init.lua'
+end
+
+-- Inline LuaRocks  http://lua-users.org/wiki/InlineCee
+-- Pandoc uses Lua, not LuaJIT
+
+initialiseSerarchPath()
+print()
+print(package.path)
+print()
+require 'untitled'
+
 -- Compatibility must be XHTML5
 
 -- http://www.w3.org/html/wg/drafts/html/master/dom.html#phrasing-content-2
+
+-- Adds the table.concat, table.insert, etc methods to tableLiteral
+local function tabelize(tableLiteral)
+	setmetatable(tableLiteral, {__index = table})
+	return tableLiteral
+end
 
 -- Causes any missing function in the future to cause a warning; should be made into generic code (ie pre-pended)
 setmetatable(_G, {
@@ -16,13 +57,6 @@ setmetatable(_G, {
 		end
 	end
 })
-
--- Adds the table.concat, table.insert, etc methods to tableLiteral
-local function tabelize(tableLiteral)
-	setmetatable(tableLiteral, {__index = table})
-	return tableLiteral
-end
-
 
 local alwaysEscapedCharacters = {}
 alwaysEscapedCharacters['<'] = '&lt;'
