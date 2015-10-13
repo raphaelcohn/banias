@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+
+# Oddly, makes the alt text use smart quotes but not the title of an image...
+pandoc --smart --toc --to html5 -o html5.orig.html --template html5/default.html5 html5/html5.md
+PANDOC_LUA_BANIAS_WRITER='html5' PANDOC_LUA_BANIAS_DEBUG='true' pandoc --smart --toc --to init.lua -o html5.html --template html5/default.html5 html5/html5.md

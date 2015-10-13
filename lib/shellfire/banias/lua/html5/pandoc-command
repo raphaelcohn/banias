@@ -1,4 +1,0 @@
-#!/usr/bin/env sh
-
-# Oddly, makes the alt text use smart quotes but not the title of an image...
-pandoc --smart --toc --to html5.lua -o html5.html --template ./default.html5 html5.md
