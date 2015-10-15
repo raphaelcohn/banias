@@ -2,6 +2,7 @@
 % Author Raphael Cohn
 % June 15, 2006
 
+<http://www.luafaq.org/#T1.11>
 
 Inline image is ![Banias Spring and Pan's Cave](images/banias-spring.jpg "Banias Spring and Pan's Cave from Wikipedia") .
 

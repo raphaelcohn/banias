@@ -4,6 +4,9 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 ]]--
 
 
+local banias = require('banias')
+local tabelize = banias.tabelize
+
 local alwaysEscapedCharacters = {}
 alwaysEscapedCharacters['<'] = '&lt;'
 alwaysEscapedCharacters['>'] = '&gt;'
@@ -15,13 +18,14 @@ alwaysEscapedCharacters = setmetatable(alwaysEscapedCharacters, {
 	}
 )
 
-function escapeRawText(rawText)
+function module.escapeRawText(rawText)
 	return rawText:gsub('[<>&]', function(matchedCharacter)
 		return alwaysEscapedCharacters[matchedCharacter]
 	end)
 end
+local escapeRawText = module.escapeRawText
 
-function attributes(attributesTable)
+function module.attributes(attributesTable)
 	
 	local attributesArray = tabelize({})
 
@@ -77,42 +81,52 @@ function attributes(attributesTable)
 	
 	return attributesArray:concat()
 end
+local attributes = module.attributes
 
-function xmlElementNameWithAttributes(elementName, attributesTable)
+function module.xmlElementNameWithAttributes(elementName, attributesTable)
 	return elementName .. attributes(attributesTable)
 end
+local xmlElementNameWithAttributes = module.xmlElementNameWithAttributes
 
-function xmlElementOpenTag(elementNameOrElementNameWithAttributes)
+function module.xmlElementOpenTag(elementNameOrElementNameWithAttributes)
 	return '<' .. elementNameOrElementNameWithAttributes .. '>'
 end
+local xmlElementOpenTag = module.xmlElementOpenTag
 
-function xmlElementCloseTag(elementNameOrElementNameWithAttributes)
+function module.xmlElementCloseTag(elementNameOrElementNameWithAttributes)
 	return '</' .. elementNameOrElementNameWithAttributes .. '>'
 end
+local xmlElementCloseTag = module.xmlElementCloseTag
 
-function xmlElementEmptyTag(elementNameOrElementNameWithAttributes)
+function module.xmlElementEmptyTag(elementNameOrElementNameWithAttributes)
 	return '<' .. elementNameOrElementNameWithAttributes .. '/>'
 end
+local xmlElementEmptyTag = module.xmlElementEmptyTag
 
-function potentiallyEmptyXml(elementName, phrasingContent)
+function module.potentiallyEmptyXml(elementName, phrasingContent)
 	if phrasingContent == '' then
-		return xmlElementEmptyTag(elementName)
+		return module.xmlElementEmptyTag(elementName)
 	end
-	return xmlElementOpenTag(elementName) .. phrasingContent .. xmlElementCloseTag(elementName)
+	return module.xmlElementOpenTag(elementName) .. phrasingContent .. xmlElementCloseTag(elementName)
 end
+local potentiallyEmptyXml = module.potentiallyEmptyXml
 
-function potentiallyEmptyXmlWithAttributes(elementName, phrasingContent, attributesTable)
+function module.potentiallyEmptyXmlWithAttributes(elementName, phrasingContent, attributesTable)
 	element = xmlElementNameWithAttributes(elementName, attributesTable)
 	if phrasingContent == '' then
 		return xmlElementEmptyTag(element)
 	end
 	return xmlElementOpenTag(element) .. phrasingContent .. xmlElementCloseTag(elementName)
 end
+local potentiallyEmptyXmlWithAttributes = module.potentiallyEmptyXmlWithAttributes
 
-function htmlSimpleList(elementName, items)
+function module.htmlSimpleList(elementName, items)
 	local buffer = tabelize({})
 	for _, phrasingContent in pairs(items) do
 		buffer:insert(potentiallyEmptyXml('li', phrasingContent))
 	end
 	return potentiallyEmptyXml(elementName, buffer:concat())
 end
+local htmlSimpleList = module.htmlSimpleList
+
+return module

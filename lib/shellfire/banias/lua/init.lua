@@ -100,26 +100,167 @@ local function packageConfiguration()
 	return configuration
 end
 
-local function initialiseSearchPath()
+local function initialiseSearchPath(subFoldersBelowRootPath)
 	
-	local path = findOurPath()
 	local configuration = packageConfiguration()
-	
 	local folderSeparator = configuration.folderSeparator
 	local pathSeparator = configuration.pathSeparator
 	local substitutionPoint = configuration.substitutionPoint
-	local paths = {
-		path .. substitutionPoint .. '.lua',
-		path .. substitutionPoint .. folderSeparator .. 'init.lua',
-		path .. substitutionPoint .. folderSeparator .. substitutionPoint .. '.lua'
-	}
-	-- '!' for executable's directory?
-	package.path = table.concat(paths, pathSeparator)
-	-- TODO: Set package.cpath (see http://www.lua.org/manual/5.2/manual.html#pdf-package.searchers); requires knowledge of file extension
-	-- TODO: Should we also set LD_LIBRARY_PATH for the cloaders (so that when they wrap, say, OpenSSL, things work)
+		
+	local ourPath = findOurPath()
+	local rootPath
+	if #subFoldersBelowRootPath > 0 then
+		local relativeSubFoldersPath = table.concat(subFoldersBelowRootPath, folderSeparator)
+		rootPath = ourPath .. folderSeparator .. relativeSubFoldersPath
+	else
+		rootPath = ourPath
+	end
+	
+	local function determineLuaLibraryFileExtension()
+		if configuration.folderSeparator == '\\' then
+			return 'dll'
+		end
+		
+		-- Maybe dylib on Mac OS X, but there's a good chance uname() is available if we want to try...; the default Lua 5.1 interpreter seems to use 'so'
+		return 'so'
+	end
+	
+	local function paths(fileExtension, ...)
+		
+		local function makeAbsolutePath(path)
+			return rootPath .. path .. '.' .. fileExtension
+		end
+		
+		local paths = {}
+		for _, path in ipairs({...}) do
+			table.insert(paths, makeAbsolutePath(path))
+		end
+		return table.concat(paths, pathSeparator)
+	end
+	
+	local function siblingPath()
+		return substitutionPoint
+	end
+	
+	local function initPath()
+		return folderSeparator .. 'init'
+	end
+	
+	local function namedInFolderPath()
+		return substitutionPoint .. folderSeparator .. substitutionPoint
+	end
+	
+	package.path = paths('lua', siblingPath(), initPath(), namedInFolderPath())
+	package.cpath = paths(determineLuaLibraryFileExtension(), siblingPath(), initPath(), namedInFolderPath())
+	
+	-- TODO: Should we also set LD_LIBRARY_PATH for the cloaders (so that when they wrap, say, OpenSSL, things work)?
 end
 
-debugIfRequired()
-initialiseSearchPath()
+function _G.requireChildOrSibling(childModuleElementName)
+	return newRequire(parentModuleName .. childModuleElementName)
+end
 
-require 'banias'
+local originalRequire = _G.require
+_G.fullModuleName = ''
+local function newRequire(modname)
+		
+	if type(modname) ~= 'string' then
+		error("Please supply a modname to require() that is a string")
+	end
+	
+	if modname:len() == 0 then
+		error("Please supply a modname to require() that isn't empty")
+	end
+
+	-- Mimics the already-loaded loader, but for '.' delimited names
+	if package.loaded[modname] ~= nil then
+		io.stderr:write("xxxx\n")
+		return package.loaded[modname]
+	end
+	
+	-- Prevent a parent that loads a child then having the parent loaded again in an infinite loop
+	local module = {}
+	package.loaded[modname] = module
+	
+	local function requireParentModuleFirst()
+		local moduleElementNames = {}
+		for moduleElementName in modname:gmatch('[^%.]+') do
+			table.insert(moduleElementNames, moduleElementName)
+		end
+	
+		local size = #moduleElementNames
+		local index = 1
+		local parentModuleName = ''
+		while index < size do
+			if parentModuleName ~= '' then
+				parentModuleName = parentModuleName .. '.'
+			end
+			parentModuleName = parentModuleName .. moduleElementNames[index]
+			index = index + 1
+		end
+	
+		if size > 1 then
+			-- Load the parent; recursion is prevented by checking package.loaded
+			return parentModuleName, newRequire(parentModuleName)
+		else
+			return parentModuleName, {}
+		end
+	end
+	local parentModuleName, parentModule = requireParentModuleFirst()
+	
+	-- eg html5.code.xxx => html5/code/xxx
+	local moduleRelativePath = modname:gsub('[%.]+', packageConfiguration().folderSeparator)
+	
+	-- What about _REQUIREDNAME ?
+	local function newGlobalEnvironment()
+		return setmetatable({module = module, parentModule = parentModule, parentModuleName = parentModuleName}, {__index = _G})
+	end
+		
+	local delegateRequire
+	
+	if _VERSION == 'Lua 5.1' then
+		delegateRequire = setfenv(function()
+
+			io.stderr:write('hello   hello' .. '\n')
+			io.stderr:write(type(moduleRelativePath) .. '\n')
+			local result = originalRequire(moduleRelativePath)
+			io.stderr:write('hello   XXX' .. '\n')
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			return result
+			
+			pandoc: user error (attempt to call a nil value)
+			WHY?
+			Try turning on per-line debugging... or function exit debugging
+			
+		end, newGlobalEnvironment())
+	else
+		-- Assuming Lua 5.2
+		do
+			local _ENV = newGlobalEnvironment()
+			function delegateRequire()
+				return originalRequire(moduleRelativePath)
+			end
+		end
+	end
+	
+	return delegateRequire()
+	
+end
+_G.require = newRequire
+
+-- Ideas: Using Lua for config with a safe environment https://stackoverflow.com/questions/3098544/lua-variable-scoping-with-setfenv#3099226
+debugIfRequired()
+initialiseSearchPath({})
+
+-- This is the only non-generic bit of code - the entry point
+local banias = require('banias')

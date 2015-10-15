@@ -6,7 +6,7 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 
 -- Runs dot then base64 on 'rawCodeString' to produce a base64-encoded png in a data: URL
 -- Added to retain compatibility with JGM
-CodeBlocks['dot'] = function(rawCodeString, attributesTable)
+parentModule.CodeBlocks['dot'] = function(rawCodeString, attributesTable)
 	
 	-- TODO: replace os.tmpname with io.tmpfile - http://www.lua.org/manual/5.2/manual.html#6.8 - but no way to get file name...
 	local function pipe(programCommandStringWithEscapedData, inputBytes)
@@ -27,3 +27,5 @@ CodeBlocks['dot'] = function(rawCodeString, attributesTable)
 	
 	return potentiallyEmptyXmlWithAttributes('img', '', {src = 'data:image/png;base64,' .. base64EncondedPortalNetworkGraphicsImage})
 end
+
+return module

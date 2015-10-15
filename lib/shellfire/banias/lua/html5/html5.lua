@@ -4,6 +4,20 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 ]]--
 
 
+local banias = require('banias')
+local tabelize = banias.tabelize
+
+local xml = require('html5/xml')
+local escapeRawText = xml.escapeRawText
+local attributes = module.attributes
+local xmlElementNameWithAttributes = module.xmlElementNameWithAttributes
+local xmlElementOpenTag = module.xmlElementOpenTag
+local xmlElementCloseTag = module.xmlElementCloseTag
+local xmlElementEmptyTag = module.xmlElementEmptyTag
+local potentiallyEmptyXml = module.potentiallyEmptyXml
+local potentiallyEmptyXmlWithAttributes = module.potentiallyEmptyXmlWithAttributes
+local htmlSimpleList = module.htmlSimpleList
+
 -- Inline LuaRocks  http://lua-users.org/wiki/InlineCee
 -- Pandoc uses Lua, not LuaJIT, and uses Lua 5.1 (irritatingly)
 -- Compatibility must be XHTML5
@@ -47,7 +61,31 @@ Required styles:-
 	}
 ]]--
 
-require 'html5/xml'
+--[[
+
+	pngcrush:
+	optipng: Crush the life out of PNGs
+	
+	png2ico: Create ICOs from pngs
+	svg2png: Create PNGs from SVG (so could go SVG -> ICO)
+	git2png: Convert GIF to PNG
+	tiff2png: Convert TIFF to PNG
+
+	pngquant:
+	pngnq:    Quantise PNGs (ie go from 24-bit colour to 8-bit colour)
+
+	pngcheck: Check CRCs, etc but also get dimensions, extract text annotations, etc
+
+	jpeginfo:
+	
+	jpegoptim: Optimisers
+	mozjpeg:
+
+	jpegrescan:
+
+]]--
+
+-- TODO: Omit quotes if no spaces at all in attributes?
 
 -- Table to store footnotes, so they can be included at the end.
 local footnotes = tabelize({})
@@ -118,14 +156,16 @@ local function CodeBlock_default(rawCodeString, attributesTable)
 	return potentiallyEmptyXml('pre', potentiallyEmptyXmlWithAttributes('code', escapeRawText(rawCodeString), attributesTable))
 end
 
-CodeBlocks = setmetatable({}, {
+-- TODO: FIXME!
+module.CodeBlocks = setmetatable({}, {
 	__index = function(_, key)
 		return CodeBlock_default
 	end
 })
 
 -- TODO: Load all submodules
-require 'html5/codeblocks/dot'
+module.codeblocks = {}
+module.codeblocks.dot = requireChildOrSibling('codeblocks.dot')
 
 function CodeBlock(rawCodeString, attributesTable)
 	if attributesTable.class then
@@ -139,8 +179,7 @@ function BlockQuote(phrasingContent)
 	return potentiallyEmptyXml('blockquote', phrasingContent)
 end
 
--- TODO: we need a submodule approach so we can change the folder name independently AND support Windows paths
-require 'html5/Table'
+requireChildOrSibling('Table')
 
 function BulletList(items)
 	return htmlSimpleList('ul', items)
@@ -243,7 +282,6 @@ function Cite(phrasingContent, citations)
 	return potentiallyEmptyXmlWithAttributes('span', phrasingContent, attributesTable)
 end
 
--- TODO: Check if attributesTable contains 'class=language-pascal', say - the correct way according to the W3C
 function Code(rawCodeString, attributesTable)
 	return potentiallyEmptyXmlWithAttributes('code', escapeRawText(rawCodeString), attributesTable)
 end
@@ -268,13 +306,12 @@ function LineBreak()
 	return xmlElementEmptyTag('br')
 end
 
--- TODO: Check if title is smart-quoted
 function Link(phrasingContent, url, title)
 	return potentiallyEmptyXmlWithAttributes('a', phrasingContent, {url = url, title = title})
 end
 
 function Image(altText, url, titleWithoutSmartQuotes)
-	-- TODO: this is where we can embed our size logic, eg using ImageMagick
+	-- TODO: this is where we can embed our size logic
 	return potentiallyEmptyXmlWithAttributes('img', '', {url = url, title = titleWithoutSmartQuotes, alt = altText})
 end
 
@@ -301,3 +338,5 @@ end
 function Span(phrasingContent, attributesTable)
 	return potentiallyEmptyXmlWithAttributes('span', phrasingContent, attributesTable)
 end
+
+return module
