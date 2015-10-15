@@ -279,7 +279,7 @@ function require(modname)
 	if searchers == nil then
 		searchers = package.loaders
 	end
-	return usefulRequire(modname, package.loaded, package.searchers, packageConfiguration.folderSeparator)
+	return usefulRequire(modname, package.loaded, searchers, packageConfiguration.folderSeparator)
 end
 
 -- Ideas: Using Lua for config with a safe environment https://stackoverflow.com/questions/3098544/lua-variable-scoping-with-setfenv#3099226
