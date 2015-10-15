@@ -7,16 +7,16 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 local banias = require('banias')
 local tabelize = banias.tabelize
 
-local xml = requireChildOrSibling('xml')
+local xml = requireChild('xml')
 local escapeRawText = xml.escapeRawText
-local attributes = module.attributes
-local xmlElementNameWithAttributes = module.xmlElementNameWithAttributes
-local xmlElementOpenTag = module.xmlElementOpenTag
-local xmlElementCloseTag = module.xmlElementCloseTag
-local xmlElementEmptyTag = module.xmlElementEmptyTag
-local potentiallyEmptyXml = module.potentiallyEmptyXml
-local potentiallyEmptyXmlWithAttributes = module.potentiallyEmptyXmlWithAttributes
-local htmlSimpleList = module.htmlSimpleList
+local attributes = xml.attributes
+local xmlElementNameWithAttributes = xml.xmlElementNameWithAttributes
+local xmlElementOpenTag = xml.xmlElementOpenTag
+local xmlElementCloseTag = xml.xmlElementCloseTag
+local xmlElementEmptyTag = xml.xmlElementEmptyTag
+local potentiallyEmptyXml = xml.potentiallyEmptyXml
+local potentiallyEmptyXmlWithAttributes = xml.potentiallyEmptyXmlWithAttributes
+local htmlSimpleList = xml.htmlSimpleList
 
 -- Inline LuaRocks  http://lua-users.org/wiki/InlineCee
 -- Pandoc uses Lua, not LuaJIT, and uses Lua 5.1 (irritatingly)
@@ -151,12 +151,13 @@ function Header(oneBasedLevelInteger, phrasingContent, attributesTable)
 	return potentiallyEmptyXmlWithAttributes('h' .. oneBasedLevelInteger, phrasingContent, attributesTable)
 end
 
-local codeblocks = requireChildOrSibling('codeblocks')
+local codeblocks = requireChild('codeblocks')
+local functions = codeblocks.functions
 
 function CodeBlock(rawCodeString, attributesTable)
 	local class = attributesTable.class
 	if class then
-		return codeblocks.functions[class](rawCodeString, attributesTable)
+		return functions[class](rawCodeString, attributesTable)
 	else
 		return codeblocks.default(rawCodeString, attributesTable)
 	end
@@ -166,7 +167,7 @@ function BlockQuote(phrasingContent)
 	return potentiallyEmptyXml('blockquote', phrasingContent)
 end
 
-requireChildOrSibling('Table')
+requireChild('Table')
 
 function BulletList(items)
 	return htmlSimpleList('ul', items)

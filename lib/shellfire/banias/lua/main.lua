@@ -168,10 +168,6 @@ local function initialiseSearchPath(package, packageConfiguration, subFoldersBel
 	-- TODO: Should we also set LD_LIBRARY_PATH for the csearchers (so that when they wrap, say, OpenSSL, things work)?
 end
 
-function _G.requireChildOrSibling(childModuleElementName)
-	return require(parentModuleName .. '.' .. childModuleElementName)
-end
-
 local function parentModuleNameFromModuleName(moduleName)
 	local moduleElementNames = {}
 	for moduleElementName in moduleName:gmatch('[^%.]+') do
@@ -282,19 +278,24 @@ function require(modname)
 	return usefulRequire(modname, package.loaded, searchers, packageConfiguration.folderSeparator)
 end
 
--- Ideas: Using Lua for config with a safe environment https://stackoverflow.com/questions/3098544/lua-variable-scoping-with-setfenv#3099226
+function requireChild(childModuleElementName)
+	return require(parentModuleName .. '.' .. childModuleElementName)
+end
+
+function requireSibling(siblingModuleElementName)
+	local grandParentModuleName, _ = parentModuleNameFromModuleName(parentModuleName)
+	local requiredModuleName
+	if grandParentModuleName == '' then
+		requiredModuleName = siblingModuleElementName
+	else
+		requiredModuleName = grandParentModuleName .. '.' .. siblingModuleElementName
+	end
+	return require(requiredModuleName)
+end
+
 debugIfRequired()
 packageConfiguration = initialisePackageConfiguration(package)
 initialiseSearchPath(package, packageConfiguration, {})
 
-
-
 -- This is the only non-generic bit of code - the entry point
 local banias = require('banias')
-
--- Problem: We do not know our modname
-	-- We can if we have a custom require(), not sure how we pass it to the child code (?arg, ?...)
--- Problem:
-	-- When iterating, we want to add to the module = {} being returned
--- Problem: We want to iterate and load all files except the current one (although require will do that for us)
--- Problem: It would be nice to store files in alternative file system (eg a tarball) -- explore using preload eg http://www.playwithlua.com/?p=11

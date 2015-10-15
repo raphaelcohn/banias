@@ -107,7 +107,7 @@ function module.potentiallyEmptyXml(elementName, phrasingContent)
 	if phrasingContent == '' then
 		return module.xmlElementEmptyTag(elementName)
 	end
-	return module.xmlElementOpenTag(elementName) .. phrasingContent .. xmlElementCloseTag(elementName)
+	return xmlElementOpenTag(elementName) .. phrasingContent .. xmlElementCloseTag(elementName)
 end
 local potentiallyEmptyXml = module.potentiallyEmptyXml
 

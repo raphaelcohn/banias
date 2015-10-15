@@ -4,6 +4,21 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 ]]--
 
 
+-- doesn't work, sadly, as tries to find html5.Table.xml
+local xml = requireSibling('xml')
+local escapeRawText = xml.escapeRawText
+local attributes = xml.attributes
+local xmlElementNameWithAttributes = xml.xmlElementNameWithAttributes
+local xmlElementOpenTag = xml.xmlElementOpenTag
+local xmlElementCloseTag = xml.xmlElementCloseTag
+local xmlElementEmptyTag = xml.xmlElementEmptyTag
+local potentiallyEmptyXml = xml.potentiallyEmptyXml
+local potentiallyEmptyXmlWithAttributes = xml.potentiallyEmptyXmlWithAttributes
+local htmlSimpleList = xml.htmlSimpleList
+
+local banias = require('banias')
+local tabelize = banias.tabelize
+
 -- Or use style="text-align:VALUE;" Or use class="align-VALUE"
 local defaultHtmlAlignment = 'left'
 local pandocToHtmlAlignmentLookUp = setmetatable({

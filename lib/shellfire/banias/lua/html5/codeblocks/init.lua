@@ -4,14 +4,26 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 ]]--
 
 
-function module.default(rawCodeString, attributesTable)
+local xml = requireSibling('xml')
+local escapeRawText = xml.escapeRawText
+local attributes = xml.attributes
+local xmlElementNameWithAttributes = xml.xmlElementNameWithAttributes
+local xmlElementOpenTag = xml.xmlElementOpenTag
+local xmlElementCloseTag = xml.xmlElementCloseTag
+local xmlElementEmptyTag = xml.xmlElementEmptyTag
+local potentiallyEmptyXml = xml.potentiallyEmptyXml
+local potentiallyEmptyXmlWithAttributes = xml.potentiallyEmptyXmlWithAttributes
+local htmlSimpleList = xml.htmlSimpleList
+
+function default(rawCodeString, attributesTable)
 	-- TODO: Consider adding highlighters here, eg using kate
 	return potentiallyEmptyXml('pre', potentiallyEmptyXmlWithAttributes('code', escapeRawText(rawCodeString), attributesTable))
 end
+module.default = default
 
 local functions = setmetatable({}, {
 	__index = function(_, key)
-		return module.default
+		return default
 	end
 })
 module.functions = functions
@@ -21,4 +33,4 @@ module.register = function(name, someCodeBlockFunction)
 end
 
 -- TODO: Load all submodules, do registration, etc
-requireChildOrSibling('dot')
+requireChild('dot')
