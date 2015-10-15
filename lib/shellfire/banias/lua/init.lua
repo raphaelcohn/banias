@@ -218,6 +218,7 @@ local function newRequire(modname)
 		
 	local delegateRequire
 	
+	-- https://github.com/keplerproject/lua-compat-5.3
 	if _VERSION == 'Lua 5.1' then
 		delegateRequire = setfenv(function()
 
