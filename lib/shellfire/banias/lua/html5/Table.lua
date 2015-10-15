@@ -18,7 +18,7 @@ local pandocToHtmlAlignmentLookUp = setmetatable({
 	}
 )
 
-function _G.Table(caption, pandocAlignments, widths, headers, rows)
+function Table(caption, pandocAlignments, widths, headers, rows)
 	
 	local buffer = tabelize({})
 	
@@ -69,5 +69,3 @@ function _G.Table(caption, pandocAlignments, widths, headers, rows)
 	
 	return buffer:concat()
 end
-
-return module

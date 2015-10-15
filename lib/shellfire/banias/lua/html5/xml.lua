@@ -128,5 +128,3 @@ function module.htmlSimpleList(elementName, items)
 	return potentiallyEmptyXml(elementName, buffer:concat())
 end
 local htmlSimpleList = module.htmlSimpleList
-
-return module

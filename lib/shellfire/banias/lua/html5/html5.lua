@@ -7,7 +7,7 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 local banias = require('banias')
 local tabelize = banias.tabelize
 
-local xml = require('html5/xml')
+local xml = requireChildOrSibling('xml')
 local escapeRawText = xml.escapeRawText
 local attributes = module.attributes
 local xmlElementNameWithAttributes = module.xmlElementNameWithAttributes
@@ -151,27 +151,14 @@ function Header(oneBasedLevelInteger, phrasingContent, attributesTable)
 	return potentiallyEmptyXmlWithAttributes('h' .. oneBasedLevelInteger, phrasingContent, attributesTable)
 end
 
-local function CodeBlock_default(rawCodeString, attributesTable)
-	-- TODO: Consider adding highlighters here
-	return potentiallyEmptyXml('pre', potentiallyEmptyXmlWithAttributes('code', escapeRawText(rawCodeString), attributesTable))
-end
-
--- TODO: FIXME!
-module.CodeBlocks = setmetatable({}, {
-	__index = function(_, key)
-		return CodeBlock_default
-	end
-})
-
--- TODO: Load all submodules
-module.codeblocks = {}
-module.codeblocks.dot = requireChildOrSibling('codeblocks.dot')
+local codeblocks = requireChildOrSibling('codeblocks')
 
 function CodeBlock(rawCodeString, attributesTable)
-	if attributesTable.class then
-		return CodeBlocks[attributesTable.class](rawCodeString, attributesTable)
+	local class = attributesTable.class
+	if class then
+		return codeblocks.functions[class](rawCodeString, attributesTable)
 	else
-		return CodeBlock_default(rawCodeString, attributesTable)
+		return codeblocks.default(rawCodeString, attributesTable)
 	end
 end
 
