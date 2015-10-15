@@ -299,8 +299,34 @@ function Link(phrasingContent, url, title)
 end
 
 function Image(altText, url, titleWithoutSmartQuotes)
-	-- TODO: this is where we can embed our size logic
-	return potentiallyEmptyXmlWithAttributes('img', '', {url = url, title = titleWithoutSmartQuotes, alt = altText})
+	
+	local conversionMapping = {
+		'width',
+		'x',
+		'height'
+	}
+	
+	-- TODO: If URL doesn't start with '/' then embed? Or does the symlink point to a FOLDER?
+	
+	-- TODO: this is where we can embed our size logic with jpeginfo
+	local shell = require('banias').shell
+	-- jpeginfo --info --lsstyle html5/banias-spring.jpg
+	-- 2592 x 1944 24bit Exif  Normal Huffman 1303996 html5/banias-spring.jpg
+	-- TODO: Check if jpeg using file xxx, may be it's a PNG or GIF
+	-- TODO: Test converting to PNG or GIF for smaller sizes
+	-- TODO: Don't base64 encode unless necessary
+	local line = shell('jpeginfo', '--info', '--lsstyle', url)
+	local index = 1
+	local jpegInfo = {}
+	for fragment in line:gmatch('([^ ]+)') do
+		if index > #conversionMapping then
+			break
+		end
+		jpegInfo[conversionMapping[index]] = fragment
+		
+		index = index + 1
+	end
+	return potentiallyEmptyXmlWithAttributes('img', '', {url = url, title = titleWithoutSmartQuotes, alt = altText, width = jpegInfo.width, height = jpegInfo.height})
 end
 
 -- HTML Entity '&#8617;' replaced with UTF-8 encoding for efficiency

@@ -4,15 +4,15 @@
 
 <http://www.luafaq.org/#T1.11>
 
-Inline image is ![Banias Spring and Pan's Cave](images/banias-spring.jpg "Banias Spring and Pan's Cave from Wikipedia") .
+Inline image is ![Banias Spring and Pan's Cave](banias-spring.jpg "Banias Spring and Pan's Cave from Wikipedia") .
 
 ![Banias Spring and Pan's Cave]
 
-[Banias Spring and Pan's Cave]: images/banias-spring.jpg
+[Banias Spring and Pan's Cave]: banias-spring.jpg
 
-![Banias Spring and Pan's Cave](images/banias-spring.jpg)
+![Banias Spring and Pan's Cave](banias-spring.jpg)
 
-![Banias Spring and Pan's Cave](images/banias-spring.jpg "Banias Spring and Pan's Cave from Wikipedia")
+![Banias Spring and Pan's Cave](banias-spring.jpg "Banias Spring and Pan's Cave from Wikipedia")
 
 ```
 	Code Block

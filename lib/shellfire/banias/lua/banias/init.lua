@@ -30,6 +30,7 @@ function module.tabelize(tableLiteral)
 	setmetatable(tableLiteral, {__index = table})
 	return tableLiteral
 end
+local tabelize = module.tabelize
 
 function module.shell(...)
 	
