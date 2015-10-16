@@ -4,7 +4,6 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 ]]--
 
 
--- doesn't work, sadly, as tries to find html5.Table.xml
 local xml = requireSibling('xml')
 local escapeRawText = xml.escapeRawText
 local attributes = xml.attributes

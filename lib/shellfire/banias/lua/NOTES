@@ -1,1 +1,11 @@
 https://stackoverflow.com/questions/11317269/how-to-compile-lua-scripts-into-a-single-executable-while-still-gaining-the-fas
+
+It seems it is possible to get hslua to use LuaJIT: https://hackage.haskell.org/package/hslua
+https://luapower.com/ - lots of luajit bindings
+
+Ljsyscall (syscall) but Justin McCormack
+
+Use luaffi for LuaJIT compatible FFI in Lua: https://github.com/jmckaskill/luaffi; newer one at https://github.com/facebook/luaffifb
+	- uses luarocks internal build to do build
+
+Luarocks is the standard dependency manager, but I really loathe its design (it's a poor apt + deb). That said, it should be possible to gut the code from src/luarocks/*.lua, add a rockspec parser and have a program that will read and install rockspecs, with 'on-the-fly' compilation of libraries (eg https://github.com/keplerproject/luarocks/blob/master/src/luarocks/build/make.lua)

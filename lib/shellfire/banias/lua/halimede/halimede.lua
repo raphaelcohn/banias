@@ -4,7 +4,8 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 ]]--
 
 
-local packageConfiguration
+local module = {}
+
 rootParentModule = {}
 module = rootParentModule
 moduleName = ''
@@ -13,84 +14,36 @@ leafModuleName = ''
 parentModule = rootParentModule
 package.loaded[''] = module
 
-local function debugIfRequired()
-
-	local environmentVariable = 'PANDOC_LUA_BANIAS_DEBUG'
-	local enableDebug = os.getenv(environmentVariable)
+function module.dirname(path)
+	assert(type(path) == 'string')
 	
-	if enableDebug == nil then
-		return
-	end
-	
-	if enableDebug ~= 'true' then
-		return
-	end
-	
-	local hook = function(event)
-		local nameInfo = debug.getinfo(2, 'n')
-	
-		local nameWhat = nameInfo.namewhat
-		if nameWhat == '' then
-			nameWhat = 'unknown'
-		end
-	
-		local functionName = nameInfo.name
-		if functionName == nil then
-			functionName = '?'
-		end
-	
-		local sourceInfo = debug.getinfo(2, 'S')
-		local language = sourceInfo.what
-		local functionKeyword
-		if language == 'Lua' then
-			if nameWhat ==  'upvalue' then
-				functionKeyword = ''
-			else
-				functionKeyword = ' function'
-			end
-		else
-			functionKeyword = ''
-		end
-
-		local sourceText
-		if language == 'C' then
-			sourceText = ''
-		else
-			local source = sourceInfo.source
-			local currentLineNumber = debug.getinfo(2, 'l').currentline
-			local currentLine
-			if currentLineNumber == -1 then
-				currentLine = ''
-			else
-				currentLine = string.format(' at line %d', currentLineNumber)
-			end
-			sourceText = string.format(' in %s%s', source, currentLine)
-		end
-		
-		local messageTemplate = "%s %s %s%s '%s'%s\n"
-		io.stderr:write(messageTemplate:format(event, language, nameWhat, functionKeyword, functionName, sourceText))
-	end
-	
-	debug.sethook(hook, 'cr')
-end
-
-local function dirname(path)
 	if path:match('.-/.-') then
 		return path:gsub('(.*/)(.*)', '%1')
 	else
-		return ''
-	end
-end
-
--- Ideally, we need to use realpath to resolve symlinks
-local function findOurPath()
-	local arg0 = debug.getinfo(findOurPath, 'S').source
-	local parentFolderPath = dirname(arg0)
-	if parentFolderPath == '' then
 		return './'
 	end
-	return parentFolderPath
 end
+local dirname = module.dirname
+
+function module.findArg0()
+	if type(arg) == 'table' and type(arg[0]) = 'string' then
+		return arg[0]
+	else
+		if debug ~=nil and debug.getinfo ~= nil then
+			-- May not be a path, could be compiled C code, etc
+			return debug.getinfo(findOurPath, 'S').source
+		else
+			return ''
+		end
+	end
+end
+local findArg0 = module.findArg0
+
+-- Ideally, we need to use realpath to resolve symlinks
+function module.findOurFolderPath()
+	return dirname(findArg0())
+end
+local findOurFolderPath = module.findOurFolderPath
 
 local function initialisePackageConfiguration(package)
 	
@@ -112,14 +65,57 @@ local function initialisePackageConfiguration(package)
 	
 	return configuration
 end
+module.packageConfiguration = initialisePackageConfiguration(package)
 
-local function initialiseSearchPath(package, packageConfiguration, subFoldersBelowRootPath)
+local function determineLuaLibraryFileExtension()
+	
+	local dll = 'dll'
+	local so = 'so'
+	local dylib = 'dylib'
+	
+	-- Running under LuaJIT makes life so much easier
+	if jit ~= nil and jit.os then
+		
+		local knownOperatingSystemsMapping = setmetatable({
+			Windows = dll,
+			Linux = so,
+			OSX = dylib,
+			BSD = so,
+			POSIX = so,
+			Other = so
+		}, {__index = function(_, key)
+			return so
+		end})
+		
+		return knownOperatingSystemsMapping[jit.os]
+	end
+	
+	if packageConfiguration.folderSeparator == '\\' then
+		return dll
+	end
+	
+	-- TODO: We could try running 'uname()' using our shell wrapper. Sadly we have no way of getting error codes from Lua
+	return so
+end
+
+local function siblingPath()
+	return substitutionPoint
+end
+
+local function initPath()
+	return substitutionPoint .. folderSeparator .. 'init'
+end
+
+local function namedInFolderPath()
+	return substitutionPoint .. folderSeparator .. substitutionPoint
+end
+
+local function initialiseSearchPaths(ourPath, package, packageConfiguration, subFoldersBelowRootPath)
 	
 	local folderSeparator = packageConfiguration.folderSeparator
 	local pathSeparator = packageConfiguration.pathSeparator
 	local substitutionPoint = packageConfiguration.substitutionPoint
 	
-	local ourPath = findOurPath()
 	local rootPath
 	if #subFoldersBelowRootPath > 0 then
 		local relativeSubFoldersPath = table.concat(subFoldersBelowRootPath, folderSeparator)
@@ -128,14 +124,6 @@ local function initialiseSearchPath(package, packageConfiguration, subFoldersBel
 		rootPath = ourPath
 	end
 	
-	local function determineLuaLibraryFileExtension()
-		if packageConfiguration.folderSeparator == '\\' then
-			return 'dll'
-		end
-		
-		-- Maybe dylib on Mac OS X, but there's a good chance uname() is available if we want to try...; the default Lua 5.1 interpreter seems to use 'so'
-		return 'so'
-	end
 	
 	local function paths(fileExtension, ...)
 		
@@ -148,18 +136,6 @@ local function initialiseSearchPath(package, packageConfiguration, subFoldersBel
 			table.insert(paths, makeAbsolutePath(path))
 		end
 		return table.concat(paths, pathSeparator)
-	end
-	
-	local function siblingPath()
-		return substitutionPoint
-	end
-	
-	local function initPath()
-		return substitutionPoint .. folderSeparator .. 'init'
-	end
-	
-	local function namedInFolderPath()
-		return substitutionPoint .. folderSeparator .. substitutionPoint
 	end
 	
 	package.path = paths('lua', siblingPath(), initPath(), namedInFolderPath())
@@ -199,11 +175,8 @@ end
 
 local function usefulRequire(moduleNameLocal, loaded, searchers, folderSeparator)
 	
-	-- Mimics the already-loaded loader, but for '.' delimited names
-	-- Turns non-table results into tables; turns nil results into existing tables
 	local alreadyLoadedOrLoadingResult = loaded[moduleNameLocal]
 	if alreadyLoadedOrLoadingResult ~= nil then
-		--print("ALREADY LOADED Or Loading " .. moduleNameLocal, alreadyLoadedOrLoadingResult)
 		return alreadyLoadedOrLoadingResult
 	end
 	
@@ -262,9 +235,7 @@ end
 
 function require(modname)
 	
-	if type(modname) ~= 'string' then
-		error("Please supply a modname to require() that is a string")
-	end
+	assert(type(modname) == 'string')
 	
 	if modname:len() == 0 then
 		error("Please supply a modname to require() that isn't empty")
@@ -278,24 +249,19 @@ function require(modname)
 	return usefulRequire(modname, package.loaded, searchers, packageConfiguration.folderSeparator)
 end
 
-function requireChild(childModuleElementName)
-	return require(parentModuleName .. '.' .. childModuleElementName)
+initialiseSearchPaths(findOurFolderPath(), package, module.packageConfiguration, {'..'})
+
+-- Assumes we're always checked out as halimede/halimede.lua
+local ourModuleName = 'halimede'
+
+-- Support being require'd ourselves
+if moduleName == ourModuleName then
+	return module
+else
+	local halimedeDebug = require(ourModuleName .. '.debug')
+	local halimedeRequireChild = require(ourModuleName .. '.requireChild')
+	local halimedeRequireSibling = require(ourModuleName .. '.requireSibling')
+
+	-- This is the only non-generic bit of code - the entry point
+	local banias = require('banias')
 end
-
-function requireSibling(siblingModuleElementName)
-	local grandParentModuleName, _ = parentModuleNameFromModuleName(parentModuleName)
-	local requiredModuleName
-	if grandParentModuleName == '' then
-		requiredModuleName = siblingModuleElementName
-	else
-		requiredModuleName = grandParentModuleName .. '.' .. siblingModuleElementName
-	end
-	return require(requiredModuleName)
-end
-
-debugIfRequired()
-packageConfiguration = initialisePackageConfiguration(package)
-initialiseSearchPath(package, packageConfiguration, {})
-
--- This is the only non-generic bit of code - the entry point
-local banias = require('banias')

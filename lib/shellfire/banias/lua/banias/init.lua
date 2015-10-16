@@ -27,6 +27,8 @@ end
 
 -- Adds the table.concat, table.insert, etc methods to tableLiteral
 function module.tabelize(tableLiteral)
+	assert(type(tableLiteral) == 'table')
+	
 	setmetatable(tableLiteral, {__index = table})
 	return tableLiteral
 end
@@ -39,6 +41,7 @@ function module.shell(...)
 	local commandBuffer = tabelize({})
 	
 	for _, argument in ipairs(arguments) do
+		assert(type(argument) == 'string')
 		commandBuffer:insert("'" .. argument:gsub("'", "''") .. "'")
 	end
 	
