@@ -4,5 +4,8 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 ]]--
 
 
+-- Relies on LUA_PATH being set correctly, and a global 'arg[0]' or 'debug.getinfo()' which contains a source file
 local halimede = require('halimede')
+
+-- No longer relies on the default require()
 local banias = require('banias')
