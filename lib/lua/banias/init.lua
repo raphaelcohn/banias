@@ -16,15 +16,13 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 -- 	end
 -- })
 
--- We ought to declare our require dependencies so we can fail-fast
-
 local function loadWriter()
 	local environmentVariable = 'PANDOC_LUA_BANIAS_WRITER'
 	local writer = os.getenv(environmentVariable)
 	if writer == nil then
 		error("The environment variable '" .. environmentVariable .. "' is not set")
 	end
-	require(writer)
+	require('banias.' .. writer)
 end
 
 loadWriter()
