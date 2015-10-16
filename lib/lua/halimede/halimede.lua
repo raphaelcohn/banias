@@ -249,19 +249,15 @@ function require(modname)
 	return usefulRequire(modname, package.loaded, searchers, packageConfiguration.folderSeparator)
 end
 
-initialiseSearchPaths(findOurFolderPath(), package, module.packageConfiguration, {'..'})
-
--- Assumes we're always checked out as halimede/halimede.lua
-local ourModuleName = 'halimede'
-
 -- Support being require'd ourselves
-if moduleName == ourModuleName then
-	return module
-else
+if moduleName == '' then
+	
+	initialiseSearchPaths(findOurFolderPath(), package, module.packageConfiguration, {'..'})
+
+	local ourModuleName = 'halimede'
 	local halimedeDebug = require(ourModuleName .. '.debug')
 	local halimedeRequireChild = require(ourModuleName .. '.requireChild')
 	local halimedeRequireSibling = require(ourModuleName .. '.requireSibling')
-
-	-- This is the only non-generic bit of code - the entry point
-	local banias = require('banias')
+else
+	return module
 end

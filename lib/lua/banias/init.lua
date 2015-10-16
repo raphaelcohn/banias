@@ -16,6 +16,8 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 -- 	end
 -- })
 
+-- We ought to declare our require dependencies so we can fail-fast
+
 local function loadWriter()
 	local environmentVariable = 'PANDOC_LUA_BANIAS_WRITER'
 	local writer = os.getenv(environmentVariable)
@@ -25,34 +27,4 @@ local function loadWriter()
 	require(writer)
 end
 
--- Adds the table.concat, table.insert, etc methods to tableLiteral
-function module.tabelize(tableLiteral)
-	assert(type(tableLiteral) == 'table')
-	
-	setmetatable(tableLiteral, {__index = table})
-	return tableLiteral
-end
-local tabelize = module.tabelize
-
-function module.shell(...)
-	
-	local arguments = {...}
-	
-	local commandBuffer = tabelize({})
-	
-	for _, argument in ipairs(arguments) do
-		assert(type(argument) == 'string')
-		commandBuffer:insert("'" .. argument:gsub("'", "''") .. "'")
-	end
-	
-	local fileHandle = io.popen(commandBuffer:concat(' '), 'r')
-	assert(fileHandle)
-	local standardOutCaptured = fileHandle:read('*all')
-	fileHandle:close()
-	
-	return standardOutCaptured
-end
-
 loadWriter()
-
-return module

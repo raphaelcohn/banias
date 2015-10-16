@@ -4,4 +4,5 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 ]]--
 
 
---TODO: Put the image calculation code in here
+local halimede = require('halimede')
+local banias = require('banias')

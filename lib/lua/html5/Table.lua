@@ -15,8 +15,7 @@ local potentiallyEmptyXml = xml.potentiallyEmptyXml
 local potentiallyEmptyXmlWithAttributes = xml.potentiallyEmptyXmlWithAttributes
 local htmlSimpleList = xml.htmlSimpleList
 
-local banias = require('banias')
-local tabelize = banias.tabelize
+local tabelize = require('halimede.tabelize').tabelize
 
 -- Or use style="text-align:VALUE;" Or use class="align-VALUE"
 local defaultHtmlAlignment = 'left'
@@ -34,7 +33,7 @@ local pandocToHtmlAlignmentLookUp = setmetatable({
 
 function Table(caption, pandocAlignments, widths, headers, rows)
 	
-	local buffer = tabelize({})
+	local buffer = tabelize()
 	
 	local function add(content)
 		buffer:insert(content)
@@ -53,7 +52,7 @@ function Table(caption, pandocAlignments, widths, headers, rows)
 		end
 	end
 	
-	local headerRow = tabelize({})
+	local headerRow = tabelize()
 	local isHeaderEmpty = true
 	for columnIndex, headerCellPhrasedContent in pairs(headers) do
 		local align = pandocToHtmlAlignmentLookUp[pandocAlignments[columnIndex]]

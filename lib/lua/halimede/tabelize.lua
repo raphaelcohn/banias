@@ -4,4 +4,16 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 ]]--
 
 
---TODO: Put the image calculation code in here
+-- Adds the table.concat, table.insert, etc methods to optionalValueToTabelize, or returns an empty table with them added
+function module.tabelize(optionalValueToTabelize)
+	
+	local valueToTabelize
+	if tableLiteral ~= nil then
+		assert(type(optionalValueToTabelize) == 'table')
+		valueToTabelize = optionalValueToTabelize
+	else
+		valueToTabelize = {}
+	end
+	
+	return setmetatable(valueToTabelize, {__index = table})
+end

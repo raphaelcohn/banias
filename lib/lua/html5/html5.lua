@@ -4,8 +4,8 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 ]]--
 
 
-local banias = require('banias')
-local tabelize = banias.tabelize
+local tabelize = require('halimede.tabelize').tabelize
+local shell = require('halimede.shell').shell
 
 local xml = requireChild('xml')
 local escapeRawText = xml.escapeRawText
@@ -88,11 +88,11 @@ Required styles:-
 -- TODO: Omit quotes if no spaces at all in attributes?
 
 -- Table to store footnotes, so they can be included at the end.
-local footnotes = tabelize({})
+local footnotes = tabelize()
 --TODO: Add meta author, dcterms.date to ?metadata?
 --TODO: Missing <title></title>!
 function Doc(body, metadata, variables)
-	local buffer = tabelize({})
+	local buffer = tabelize()
 	
 	local function add(content)
 		buffer:insert(content)
@@ -118,7 +118,7 @@ end
 
 function CaptionedImage(url, title, altText)
 	
-	local buffer = tabelize({})
+	local buffer = tabelize()
 	local function add(content)
 		buffer:insert(content)
 	end
@@ -181,7 +181,7 @@ end
 -- TODO: Use <defn> tag to define a term in the <dt>, eg <dt><defn>hello</defn></dt><dd>A way to greet someone</dd></dt>
 -- TODO: Tag ommission rules for dd / dt  http://www.w3.org/html/wg/drafts/html/master/semantics.html#the-dl-element
 function DefinitionList(items)
-	local buffer = tabelize({})
+	local buffer = tabelize()
 	
 	local function add(content)
 		buffer:insert(content)

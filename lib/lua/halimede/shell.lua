@@ -4,4 +4,23 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 ]]--
 
 
---TODO: Put the image calculation code in here
+local tabelize = requireSibling('tabelize').tabelize
+
+function module.shell(...)
+	
+	local arguments = {...}
+	
+	local commandBuffer = tabelize()
+	
+	for _, argument in ipairs(arguments) do
+		assert(type(argument) == 'string')
+		commandBuffer:insert("'" .. argument:gsub("'", "''") .. "'")
+	end
+	
+	local fileHandle = io.popen(commandBuffer:concat(' '), 'r')
+	assert(fileHandle)
+	local standardOutCaptured = fileHandle:read('*all')
+	fileHandle:close()
+	
+	return standardOutCaptured
+end

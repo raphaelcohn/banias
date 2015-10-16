@@ -4,8 +4,7 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 ]]--
 
 
-local banias = require('banias')
-local tabelize = banias.tabelize
+local tabelize = require('halimede.tabelize').tabelize
 
 local alwaysEscapedCharacters = {}
 alwaysEscapedCharacters['<'] = '&lt;'
@@ -27,7 +26,7 @@ local escapeRawText = module.escapeRawText
 
 function module.attributes(attributesTable)
 	
-	local attributesArray = tabelize({})
+	local attributesArray = tabelize()
 
 	for attributeName, attributeValue in pairs(attributesTable) do
 		
@@ -121,7 +120,7 @@ end
 local potentiallyEmptyXmlWithAttributes = module.potentiallyEmptyXmlWithAttributes
 
 function module.htmlSimpleList(elementName, items)
-	local buffer = tabelize({})
+	local buffer = tabelize()
 	for _, phrasingContent in pairs(items) do
 		buffer:insert(potentiallyEmptyXml('li', phrasingContent))
 	end
