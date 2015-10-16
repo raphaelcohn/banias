@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+
+# Oddly, makes the alt text use smart quotes but not the title of an image...
+pandoc --smart --toc --to html5 -o html5.orig.html --template ../html5/template.html html5.md
+export PANDOC_LUA_BANIAS_DEBUG='false'
+PANDOC_LUA_BANIAS_WRITER='html5' pandoc --smart --toc --to ../halimede/halimede.lua -o html5.html --template ../html5/template.html html5.md
+
+# TODO on output - run through pigz -11 to really create a crushed gzip'd file
