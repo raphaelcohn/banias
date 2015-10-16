@@ -4,7 +4,7 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 ]]--
 
 
-local xml = requireSibling('xml')
+local xml = require('xml')
 local escapeRawText = xml.escapeRawText
 local attributes = xml.attributes
 local xmlElementNameWithAttributes = xml.xmlElementNameWithAttributes
@@ -13,7 +13,6 @@ local xmlElementCloseTag = xml.xmlElementCloseTag
 local xmlElementEmptyTag = xml.xmlElementEmptyTag
 local potentiallyEmptyXml = xml.potentiallyEmptyXml
 local potentiallyEmptyXmlWithAttributes = xml.potentiallyEmptyXmlWithAttributes
-local htmlSimpleList = xml.htmlSimpleList
 
 function default(rawCodeString, attributesTable)
 	-- TODO: Consider adding highlighters here, eg using kate

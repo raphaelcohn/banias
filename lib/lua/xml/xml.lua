@@ -118,12 +118,3 @@ function module.potentiallyEmptyXmlWithAttributes(elementName, phrasingContent, 
 	return xmlElementOpenTag(element) .. phrasingContent .. xmlElementCloseTag(elementName)
 end
 local potentiallyEmptyXmlWithAttributes = module.potentiallyEmptyXmlWithAttributes
-
-function module.htmlSimpleList(elementName, items)
-	local buffer = tabelize()
-	for _, phrasingContent in pairs(items) do
-		buffer:insert(potentiallyEmptyXml('li', phrasingContent))
-	end
-	return potentiallyEmptyXml(elementName, buffer:concat())
-end
-local htmlSimpleList = module.htmlSimpleList

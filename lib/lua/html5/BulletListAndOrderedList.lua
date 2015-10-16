@@ -14,26 +14,22 @@ local xmlElementEmptyTag = xml.xmlElementEmptyTag
 local potentiallyEmptyXml = xml.potentiallyEmptyXml
 local potentiallyEmptyXmlWithAttributes = xml.potentiallyEmptyXmlWithAttributes
 
--- Runs dot then base64 on 'rawCodeString' to produce a base64-encoded png in a data: URL
--- Added to retain compatibility with JGM
-parentModule.register(leafModuleName, function(rawCodeString, attributesTable)
-	
-	-- TODO: replace os.tmpname with io.tmpfile - http://www.lua.org/manual/5.2/manual.html#6.8 - but no way to get file name...
-	local function pipe(programCommandStringWithEscapedData, inputBytes)
-		local temporaryFileToWrite = os.tmpname()
-		local tmph = io.open(temporaryFileToWrite, 'w')
-		tmph:write(inputBytes)
-		tmph:close()
+local tabelize = require('halimede.tabelize').tabelize
 
-		local outh = io.popen(programCommandStringWithEscapedData .. ' ' .. temporaryFileToWrite, 'r')
-		local result = outh:read('*all')
-		outh:close()
-
-		os.remove(temporaryFileToWrite)
-		return result
+local function htmlSimpleList(elementName, items)
+	local buffer = tabelize()
+	for _, phrasingContent in pairs(items) do
+		buffer:insert(potentiallyEmptyXml('li', phrasingContent))
 	end
-	
-    local base64EncondedPortalNetworkGraphicsImage = pipe('base64', pipe('dot -Tpng', rawCodeString))
-	
-	return potentiallyEmptyXmlWithAttributes('img', '', {src = 'data:image/png;base64,' .. base64EncondedPortalNetworkGraphicsImage})
-end)
+	return potentiallyEmptyXml(elementName, buffer:concat())
+end
+local htmlSimpleList = module.htmlSimpleList
+
+function BulletList(items)
+	return htmlSimpleList('ul', items)
+end
+
+-- TODO: Use numer, style and delimiter
+function OrderedList(items, number, style, delimiter)
+	return htmlSimpleList('ol', items)
+end

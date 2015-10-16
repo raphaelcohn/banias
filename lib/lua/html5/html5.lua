@@ -7,7 +7,7 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 local tabelize = require('halimede.tabelize').tabelize
 local shell = require('halimede.shell').shell
 
-local xml = requireChild('xml')
+local xml = require('xml')
 local escapeRawText = xml.escapeRawText
 local attributes = xml.attributes
 local xmlElementNameWithAttributes = xml.xmlElementNameWithAttributes
@@ -16,7 +16,6 @@ local xmlElementCloseTag = xml.xmlElementCloseTag
 local xmlElementEmptyTag = xml.xmlElementEmptyTag
 local potentiallyEmptyXml = xml.potentiallyEmptyXml
 local potentiallyEmptyXmlWithAttributes = xml.potentiallyEmptyXmlWithAttributes
-local htmlSimpleList = xml.htmlSimpleList
 
 -- Inline LuaRocks  http://lua-users.org/wiki/InlineCee
 -- Pandoc uses Lua, not LuaJIT, and uses Lua 5.1 (irritatingly)
@@ -169,14 +168,7 @@ end
 
 requireChild('Table')
 
-function BulletList(items)
-	return htmlSimpleList('ul', items)
-end
-
--- TODO: Use numer, style and delimiter
-function OrderedList(items, number, style, delimiter)
-	return htmlSimpleList('ol', items)
-end
+requireChild('BulletListAndOrderedList')
 
 -- TODO: Use <defn> tag to define a term in the <dt>, eg <dt><defn>hello</defn></dt><dd>A way to greet someone</dd></dt>
 -- TODO: Tag ommission rules for dd / dt  http://www.w3.org/html/wg/drafts/html/master/semantics.html#the-dl-element
