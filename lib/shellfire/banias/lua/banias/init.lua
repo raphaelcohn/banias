@@ -4,19 +4,17 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 ]]--
 
 
-local module = {}
-
 -- Causes any missing function in the future to cause a warning; should be made into generic code (ie pre-pended)
-setmetatable(_G, {
-	__index = function(tableLookedUp, missingFunctionInModule)
-		local messageTemplate = "WARN: Missing required function '%s'\n"
-		
-		io.stderr:write(messageTemplate:format(missingFunctionInModule))
-		return function()
-			return ''
-		end
-	end
-})
+-- setmetatable(_G, {
+-- 	__index = function(tableLookedUp, missingFunctionInModule)
+-- 		local messageTemplate = "WARN: Missing required function '%s'\n"
+--
+-- 		io.stderr:write(messageTemplate:format(missingFunctionInModule))
+-- 		return function()
+-- 			return ''
+-- 		end
+-- 	end
+-- })
 
 local function loadWriter()
 	local environmentVariable = 'PANDOC_LUA_BANIAS_WRITER'
@@ -24,7 +22,6 @@ local function loadWriter()
 	if writer == nil then
 		error("The environment variable '" .. environmentVariable .. "' is not set")
 	end
-	
 	require(writer)
 end
 
@@ -33,6 +30,7 @@ function module.tabelize(tableLiteral)
 	setmetatable(tableLiteral, {__index = table})
 	return tableLiteral
 end
+local tabelize = module.tabelize
 
 function module.shell(...)
 	
@@ -55,13 +53,3 @@ end
 loadWriter()
 
 return module
-
--- Problem: We do not know our modname
-	-- We can if we have a custom require(), not sure how we pass it to the child code (?arg, ?...)
--- Problem:
-	-- When iterating, we want to add to the module = {} being returned
--- Problem: We want to iterate and load all files except the current one (although require will do that for us)
-	-- We could change the environment and so change package.path / package.cpath so it looks 'one deeper'
-	-- We would also want to change require to 'prepend' the current module name
-	-- We need to switch from using '/' to '.', however, how does that translate?
--- Problem: It would be nice to store files in alternative file system (eg a tarball)

@@ -107,7 +107,7 @@ function module.potentiallyEmptyXml(elementName, phrasingContent)
 	if phrasingContent == '' then
 		return module.xmlElementEmptyTag(elementName)
 	end
-	return module.xmlElementOpenTag(elementName) .. phrasingContent .. xmlElementCloseTag(elementName)
+	return xmlElementOpenTag(elementName) .. phrasingContent .. xmlElementCloseTag(elementName)
 end
 local potentiallyEmptyXml = module.potentiallyEmptyXml
 
@@ -128,5 +128,3 @@ function module.htmlSimpleList(elementName, items)
 	return potentiallyEmptyXml(elementName, buffer:concat())
 end
 local htmlSimpleList = module.htmlSimpleList
-
-return module
