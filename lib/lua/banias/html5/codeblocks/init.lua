@@ -5,7 +5,7 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 
 
 local xmlwriter = require('xmlwriter')
-local escapeRawText = xmlwriter.escapeRawText
+local writeText = xmlwriter.writeText
 local attributes = xmlwriter.attributes
 local writeXmlElementNameWithAttributes = xmlwriter.writeXmlElementNameWithAttributes
 local writeXmlElementOpenTag = xmlwriter.writeXmlElementOpenTag
@@ -22,7 +22,7 @@ function default(rawCodeString, attributesTable)
 	assert.parameterIsTable(attributesTable)
 	
 	-- TODO: Consider adding highlighters here, eg using kate
-	return writePotentiallyEmptyXml('pre', writePotentiallyEmptyXmlWithAttributes('code', escapeRawText(rawCodeString), attributesTable))
+	return writePotentiallyEmptyXml('pre', writePotentiallyEmptyXmlWithAttributes('code', writeText(rawCodeString), attributesTable))
 end
 module.default = default
 

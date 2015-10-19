@@ -8,7 +8,7 @@ local shell = require('halimede.shell').shell
 local tabelize = require('halimede.tabelize').tabelize
 
 local xmlwriter = require('xmlwriter')
-local escapeRawText = xmlwriter.escapeRawText
+local writeText = xmlwriter.writeText
 local attributes = xmlwriter.attributes
 local writeXmlElementNameWithAttributes = xmlwriter.writeXmlElementNameWithAttributes
 local writeXmlElementOpenTag = xmlwriter.writeXmlElementOpenTag

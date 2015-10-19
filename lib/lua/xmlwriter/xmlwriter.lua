@@ -18,14 +18,14 @@ alwaysEscapedCharacters = setmetatable(alwaysEscapedCharacters, {
 	}
 )
 
-function module.escapeRawText(rawText)
+function module.writeText(rawText)
 	assert.parameterIsString(rawText)
 	
 	return rawText:gsub('[<>&]', function(matchedCharacter)
 		return alwaysEscapedCharacters[matchedCharacter]
 	end)
 end
-local escapeRawText = module.escapeRawText
+local writeText = module.writeText
 
 function module.attributes(attributesTable)
 	assert.parameterIsTable(attributesTable)

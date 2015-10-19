@@ -7,7 +7,7 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 local tabelize = require('halimede.tabelize').tabelize
 
 local xmlwriter = require('xmlwriter')
-local escapeRawText = xmlwriter.escapeRawText
+local writeText = xmlwriter.writeText
 local attributes = xmlwriter.attributes
 local writeXmlElementNameWithAttributes = xmlwriter.writeXmlElementNameWithAttributes
 local writeXmlElementOpenTag = xmlwriter.writeXmlElementOpenTag
@@ -137,7 +137,7 @@ function RawBlock(format, content)
 	if format == 'html' then
 		return content
 	else
-		return writePotentiallyEmptyXml('pre', escapeRawText(content))
+		return writePotentiallyEmptyXml('pre', writeText(content))
 	end
 end
 
@@ -220,7 +220,7 @@ end
 
 function Str(rawText)
 	assert.parameterIsString(rawText)
-	return escapeRawText(rawText)
+	return writeText(rawText)
 end
 
 function Space()
@@ -295,17 +295,17 @@ end
 function Code(rawCodeString, attributesTable)
 	assert.parameterIsString(rawCodeString)
 	assert.parameterIsTable(attributesTable)
-	return writePotentiallyEmptyXmlWithAttributes('code', escapeRawText(rawCodeString), attributesTable)
+	return writePotentiallyEmptyXmlWithAttributes('code', writeText(rawCodeString), attributesTable)
 end
 
 function DisplayMath(rawText)
 	assert.parameterIsString(rawText)
-	return '\\[' .. escapeRawText(rawText) .. '\\]'
+	return '\\[' .. writeText(rawText) .. '\\]'
 end
 
 function InlineMath(rawText)
 	assert.parameterIsString(rawText)
-	return '\\(' .. escapeRawText(rawText) .. '\\)'
+	return '\\(' .. writeText(rawText) .. '\\)'
 end
 
 function RawInline(format, content)
@@ -315,7 +315,7 @@ function RawInline(format, content)
 	if format == 'html' then
 		return content
 	else
-		return writePotentiallyEmptyXml('code', escapeRawText(content))
+		return writePotentiallyEmptyXml('code', writeText(content))
 	end
 end
 
