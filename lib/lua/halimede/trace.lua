@@ -4,6 +4,9 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 ]]--
 
 
+local assert = requireSibling('assert')
+
+
 local function traceIfRequired()
 	
 	local environmentVariable = 'PANDOC_LUA_BANIAS_TRACE'
@@ -19,13 +22,13 @@ local function traceIfRequired()
 		return
 	end
 	
-	local enableDebug = getenv(environmentVariable)
+	local enableTracing = getenv(environmentVariable)
 	
-	if enableDebug == nil then
+	if enableTracing == nil then
 		return
 	end
 	
-	if enableDebug ~= 'true' then
+	if enableTracing ~= 'true' then
 		return
 	end
 	
@@ -66,6 +69,9 @@ local function traceIfRequired()
 	end
 	
 	sethook(function(event)
+		
+		assert.parameterIsString(event)
+		
 		local nameInfo = getinfo(2, 'n')
 	
 		local nameWhat = nameInfo.namewhat
