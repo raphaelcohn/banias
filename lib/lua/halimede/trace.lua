@@ -4,6 +4,7 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 ]]--
 
 
+local halimede = require('halimede')
 local assert = requireSibling('assert')
 
 
@@ -12,17 +13,31 @@ local function traceIfRequired()
 	local environmentVariable = 'LUA_HALIMEDE_TRACE'
 	
 	-- Check for functions in the global namespace that we rely on that might have been removed in a sandbox; don't enable tracing if they're not present.
-	
-	if os == nil then
+	if not halimede.hasPackageChildFieldOfTypeString('os', 'getenv') then
 		return
 	end
 	
-	local getenv = os.getenv
-	if getenv == nil then
+	if not halimede.hasPackageChildFieldOfTypeString('debug', 'sethook', 'getinfo') then
 		return
 	end
 	
-	local enableTracing = getenv(environmentVariable)
+	if not halimede.hasPackageChildFieldOfTypeString('string', 'format') then
+		return
+	end
+	
+	if not halimede.hasPackageChildFieldOfTypeString('io', 'stderr') then
+		return
+	end
+	
+	local write = io.stderr.write
+	if write == nil then
+		return
+	end
+	if type(write) ~= 'function' then
+		return
+	end
+	
+	local enableTracing = os.getenv(environmentVariable)
 	
 	if enableTracing == nil then
 		return
@@ -32,43 +47,11 @@ local function traceIfRequired()
 		return
 	end
 	
-	if debug == nil then
-		return
-	end
-	
-	local getinfo = debug.getinfo
-	if getinfo == nil then
-		return
-	end
-	
-	local sethook = debug.sethook
-	if sethook == nil then
-		return
-	end
-	
-	if io == nil then
-		return
-	end
-	
 	local stderr = io.stderr
-	if stderr == nil then
-		return
-	end
-	
-	if stderr.write == nil then
-		return
-	end
-	
-	if string == nil then
-		return
-	end
-	
+	local getinfo = debug.getinfo
 	local format = string.format
-	if format == nil then
-		return
-	end
 	
-	sethook(function(event)
+	debug.sethook(function(event)
 		
 		assert.parameterIsString(event)
 		

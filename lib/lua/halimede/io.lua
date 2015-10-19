@@ -5,17 +5,22 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 
 
 local assert = require('halimede.assert')
-local io = require('halimede.io')
+local exception = require('halimede.exception')
 
 
-function module.loadRockSpec(rockSpecFilePath)
+-- Defensive checks; fail-fast on initialisation
+assert.globalTypeIsTable('io')
+
+assert.globalTableHasChieldFieldOfTypeFunction('io', 'open')
+function module.openTextModeForReading(filePath, fileDescription)
 	
-	assert.parameterTypeIsString(rockSpecFilePath)
+	assert.parameterTypeIsString(filePath)
+	assert.parameterTypeIsString(fileDescription)
 	
-	local fileHandle = io.openTextModeForReading('rockspec file', rockSpecFilePath)
+	local fileHandle, errorMessage = io.open(filePath, 'r')
+	if fileHandle == nil then
+		exception.throw("Could not open %s '%s' because of error '%s'", fileDescription, filePath, errorMessage)
+	end
+	return fileHandle
 	
-	-- need to create an environment
-	local environment = {}
-	
-	fileHandle:close()
 end

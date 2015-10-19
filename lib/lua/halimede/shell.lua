@@ -6,6 +6,7 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 
 local assert = requireSibling('assert')
 local tabelize = requireSibling('tabelize').tabelize
+local exception = requireSibling('exception')
 
 function module.shell(...)
 	
@@ -18,8 +19,11 @@ function module.shell(...)
 		commandBuffer:insert("'" .. argument:gsub("'", "''") .. "'")
 	end
 	
-	local fileHandle = io.popen(commandBuffer:concat(' '), 'r')
-	assert(fileHandle)
+	local command = commandBuffer:concat(' ')
+	local fileHandle = io.popen(command, 'r')
+	if fileHandle == nil then
+		exception.throw("Could not open shell for command '%s'", command)
+	end
 	local standardOutCaptured = fileHandle:read('*all')
 	fileHandle:close()
 	

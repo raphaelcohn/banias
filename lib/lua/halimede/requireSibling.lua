@@ -4,12 +4,14 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 ]]--
 
 
-local assert = requireSibling('assert')
+local halimede = require('halimede')
+
+local assert = {}
 
 function requireSibling(siblingModuleElementName)
 	assert.parameterTypeIsString(siblingModuleElementName)
 	
-	local grandParentModuleName, _ = parentModuleNameFromModuleName(parentModuleName)
+	local grandParentModuleName, _ = halimede.parentModuleNameFromModuleName(parentModuleName)
 	local requiredModuleName
 	if grandParentModuleName == '' then
 		requiredModuleName = siblingModuleElementName
@@ -18,3 +20,5 @@ function requireSibling(siblingModuleElementName)
 	end
 	return require(requiredModuleName)
 end
+
+assert = requireSibling('assert')

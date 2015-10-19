@@ -4,4 +4,6 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 ]]--
 
 
--- This module is a little unusual; all of its functionality is actually contained in halimede.lua. This is because it is needed during halimede's loading; halimede is needed to load modules, and so a circular dependency comes into being.
+-- This module is a little unusual; most of its functionality is actually contained in halimede.lua. This is because it is needed during halimede's loading; halimede is needed to load modules, and so a circular dependency comes into being.
+
+local halimede = require('halimede')

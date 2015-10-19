@@ -4,18 +4,10 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 ]]--
 
 
-local assert = require('halimede.assert')
-local io = require('halimede.io')
+local assert = requireSibling('assert')
 
-
-function module.loadRockSpec(rockSpecFilePath)
+function module.throw(template, ...)
+	assert.parameterTypeIsString(template)
 	
-	assert.parameterTypeIsString(rockSpecFilePath)
-	
-	local fileHandle = io.openTextModeForReading('rockspec file', rockSpecFilePath)
-	
-	-- need to create an environment
-	local environment = {}
-	
-	fileHandle:close()
+	error(template:format(template, ...))
 end
