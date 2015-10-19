@@ -7,6 +7,14 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 local module = {}
 local ourModuleName = 'halimede'
 
+rootParentModule = {}
+module = rootParentModule
+moduleName = ''
+parentModuleName = ''
+leafModuleName = ''
+parentModule = rootParentModule
+package.loaded[''] = module
+modulesRootPath = ''
 
 
 -- Embedded assert module (logically, assert.lua, but functionality is needed during load)
@@ -158,13 +166,13 @@ assert.globalTypeIsFunction(
 	'ipairs',
 	'pairs',
 	'pcall',
+	'setmetatable',
 	'type',
 	'unpack',
 	'xpcall'
 )
 
 assert.globalTypeIsTable(
-	'table',
 	'_G',
 	'package',
 	'string',
@@ -174,18 +182,9 @@ assert.globalTypeIsTable(
 local assert = assertModule
 
 
-
-rootParentModule = {}
-module = rootParentModule
-moduleName = ''
-parentModuleName = ''
-leafModuleName = ''
-parentModule = rootParentModule
-package.loaded[''] = module
-
 function module.hasPackageChildFieldOfType(expectation, name, ...)
-	assertModule.parameterTypeIsString(expectation)
-	assertModule.parameterTypeIsString(name)
+	assert.parameterTypeIsString(expectation)
+	assert.parameterTypeIsString(name)
 	
 	local package = _G[name]
 	if package == nil then
@@ -219,6 +218,29 @@ end
 
 function module.hasPackageChildFieldOfTypeString(name, ...)
 	module.hasPackageChildFieldOfType('string', name, ...)
+end
+
+assert.globalTableHasChieldFieldOfTypeTable('table', 'insert')
+assert.globalTableHasChieldFieldOfTypeTable('string', 'find', 'sub')
+function string.split(value, separator)
+
+	local result = {}
+	local length = value:len()
+	
+	local start
+	local finish
+	local previousFinish = 1
+	while true do
+		start, finish = value:find(separator, previousFinish, true)
+		if start == nil then
+			table.insert(result, value:sub(previousFinish))
+			break
+		end
+		table.insert(result, value:sub(previousFinish, start - 1))
+		previousFinish = finish + 1
+	end
+
+	return result
 end
 
 assert.globalTableHasChieldFieldOfTypeTable('string', 'gmatch')
@@ -283,11 +305,27 @@ function module.findArg0()
 end
 local findArg0 = module.findArg0
 
+assert.globalTableHasChieldFieldOfTypeTable('table', 'concat')
+function module.concatenateToPath(parentPath, ...)
+	assert.parameterTypeIsString(arentPath)
+	
+	local subFolders = {...}
+	local folderSeparator = packageConfiguration.folderSeparator
+	
+	local rootPath
+	if #subFolders == 0 then
+		return parentPath
+	end
+	
+	local relativeSubFoldersPath = table.concat(subFolders, folderSeparator)
+	return parentPath .. folderSeparator .. relativeSubFoldersPath
+end
+local concatenateToPath = module.concatenateToPath
+
 -- Ideally, we need to use realpath to resolve symlinks
-function module.findOurFolderPath()
+local function findOurFolderPath()
 	return dirname(findArg0(), packageConfiguration.folderSeparator)
 end
-local findOurFolderPath = module.findOurFolderPath
 
 local function determineLuaLibraryFileExtension(folderSeparator)
 	
@@ -316,66 +354,11 @@ local function determineLuaLibraryFileExtension(folderSeparator)
 		return dll
 	end
 	
-	-- TODO: We could try running 'uname()' using our shell wrapper. Sadly we have no way of getting error codes from Lua
 	return so
 end
 
-local function siblingPath()
-	local folderSeparator = packageConfiguration.folderSeparator
-	local pathSeparator = packageConfiguration.pathSeparator
-	local substitutionPoint = packageConfiguration.substitutionPoint
-	
-	return substitutionPoint
-end
-
-local function initPath()
-	local folderSeparator = packageConfiguration.folderSeparator
-	local pathSeparator = packageConfiguration.pathSeparator
-	local substitutionPoint = packageConfiguration.substitutionPoint
-	
-	return substitutionPoint .. folderSeparator .. 'init'
-end
-
--- Only works for top-level modules, eg halimede/halimede.lua, not banias/html5/html5.lua
-local function namedInFolderPath()
-	local folderSeparator = packageConfiguration.folderSeparator
-	local pathSeparator = packageConfiguration.pathSeparator
-	local substitutionPoint = packageConfiguration.substitutionPoint
-	
-	return substitutionPoint .. folderSeparator .. substitutionPoint
-end
-
-local function initialiseSearchPaths(ourPath, subFoldersBelowRootPath, ...)
-	
-	local pathCreatingFunctions = {...}
-	
-	local rootPath
-	if #subFoldersBelowRootPath > 0 then
-		local relativeSubFoldersPath = table.concat(subFoldersBelowRootPath, folderSeparator)
-		rootPath = ourPath .. folderSeparator .. relativeSubFoldersPath
-	else
-		rootPath = ourPath
-	end
-	
-	local function paths(fileExtension, ...)
-		
-		local function makeAbsolutePath(path)
-			return rootPath .. folderSeparator .. path .. '.' .. fileExtension
-		end
-		
-		local paths = {}
-		for _, path in ipairs({...}) do
-			table.insert(paths, makeAbsolutePath(path))
-		end
-		return table.concat(paths, pathSeparator)
-	end
-	
-	package.path = paths('lua', siblingPath(), initPath(), namedInFolderPath())
-	package.cpath = paths(determineLuaLibraryFileExtension(folderSeparator), siblingPath(), initPath(), namedInFolderPath())
-	
-	-- TODO: Should we also set LD_LIBRARY_PATH for the csearchers (so that when they wrap, say, OpenSSL, things work)?
-end
-
+assert.globalTableHasChieldFieldOfTypeTable('string', 'gmatch')
+assert.globalTableHasChieldFieldOfTypeTable('table', 'insert')
 function module.parentModuleNameFromModuleName(moduleName)
 	local moduleElementNames = {}
 	for moduleElementName in moduleName:gmatch('[^%.]+') do
@@ -406,6 +389,43 @@ local function requireParentModuleFirst(ourParentModuleName)
 	end
 end
 
+assert.globalTableHasChieldFieldOfTypeTable('table', 'insert')
+local searchPathGenerators = {
+	function(moduleName)
+		return packageConfiguration.substitutionPoint
+	end,
+	function(moduleName)
+		return packageConfiguration.substitutionPoint, 'init'
+	end,
+	function(moduleName)
+		-- eg banias.html5 => banias/html5/html5.lua (modname is then irrelevant to searcher)
+		local subFolders = moduleName:split('.')
+		table.insert(subFolders, subFolders[#subFolders])
+		return unpack(subFolders)
+	end
+}
+
+assert.globalTableHasChieldFieldOfTypeTable('table', 'insert', 'concat')
+local function initialiseSearchPaths(moduleNameLocal, searchPathGenerators)
+
+	local folderSeparator = packageConfiguration.folderSeparator
+	local pathSeparator = packageConfiguration.pathSeparator
+	
+	local mappings = {
+		path = 'lua',
+		cpath = determineLuaLibraryFileExtension(folderSeparator)
+	}	
+	
+	for key, fileExtension in pairs(mappings) do
+		local paths = {}
+		for _, searchPathGenerator in moduleNameLocal, searchPathGenerators do
+			table.insert(paths, concatenateToPath(modulesRootPath, searchPathGenerator(moduleNameLocal) .. '.' .. fileExtension)
+		end
+		package[key] = table.concat(paths, pathSeparator)
+	end
+end
+
+assert.globalTableHasChieldFieldOfTypeTable('string', 'gsub')
 local function usefulRequire(moduleNameLocal, loaded, searchers, folderSeparator)
 	
 	local alreadyLoadedOrLoadingResult = loaded[moduleNameLocal]
@@ -439,40 +459,13 @@ local function usefulRequire(moduleNameLocal, loaded, searchers, folderSeparator
 	leafModuleName = leafModuleNameLocal
 	parentModule = loaded[parentModuleNameLocal]
 	
-	-- DO THIS LOOP TWICE with diff functions
-	
-	local loops = {
-		{siblingPath, initPath, namedInFolderPath},
-		{siblingPath, initPath, function()
-			-- Do stuff with modname so banias/html5/html5.lua works...
-			XXXXXX
-		end}
-	}
-	
-	
-	
-	
-	XXXadaad: das das
-	
-	
-	
-	
-	
-	initialiseSearchPaths(findOurFolderPath(), {'..'}, siblingPath, initPath, namedInFolderPath)
-	
+	initialiseSearchPaths(moduleNameLocal, searchPathGenerators)
 	for _, searcher in ipairs(searchers) do
 		-- filePath only in Lua 5.2+, and not set by the preload searcher
-		
-		-- doesn't work for 'banias/html5/html5.lua'; tries to look for banias/html5.lua (OK), banias/html5/init.lua (OK, but annoying as lots of init.lua files), banias/html5/banias/html5.lua (irrititating, and needed if we're going to support git submodule of other people's Lua code, where there's a file in the root of the repo)
-		-- we could run the searcher multiple times and change the path / cpath each time (ie we control the path)
-		-- we could implement our own searchers for Lua and C (but not all-in-one)
-		-- we could load code into the preload table (quite cunning, really, and the way we would ship an all-in-one Lua file in any event)
-				
-		
 		local moduleLoaderOrFailedToFindExplanationString, filePath = searcher(moduleNameLocal)
 		if type(moduleLoaderOrFailedToFindExplanationString) == 'function' then
 			local result = moduleLoaderOrFailedToFindExplanationString()
-			
+		
 			local ourResult
 			if result == nil then
 				ourResult = moduleLocal
@@ -486,10 +479,6 @@ local function usefulRequire(moduleNameLocal, loaded, searchers, folderSeparator
 			loaded[moduleNameLocal] = ourResult
 			resetModuleGlobals()
 			return ourResult
-		else
-			
-			-- 	no file '../halimede/../banias/html5/banias/html5.lua'
-		io.stderr:write(moduleLoaderOrFailedToFindExplanationString .. '\n')
 		end
 	end
 	
@@ -498,6 +487,7 @@ local function usefulRequire(moduleNameLocal, loaded, searchers, folderSeparator
 	error(string.format("Could not load module '%s' ", moduleNameLocal))
 end
 
+assert.globalTableHasChieldFieldOfTypeTable('string', 'len')
 function require(modname)
 	assert.parameterTypeIsString(modname)
 	
@@ -513,58 +503,11 @@ function require(modname)
 	return usefulRequire(modname, package.loaded, searchers, packageConfiguration.folderSeparator)
 end
 
-local function createSearchers()
-	
-	-- Lua 5.1 / 5.2 compatibility
-	local originalSearchers = package.searchers
-	if originalSearchers == nil then
-		originalSearchers = package.loaders
-	end
-
-	local originalLuaPathSearcher = package.searchers[2]
-	local originalLuaCPathSearcher = package.searchers[3]
-	local originalLuaAllInOneCPathSearcher = package.searchers[4]
-	
-	-- Brittle code; assumes searchers have not been modified by the Lua host
-	local replacementSearchers = {
-		originalSearchers[1],
-		function(modname)
-			local moduleLoaderOrFailedToFindExplanationString, filePath
-			local originalPath = package.path
-			package.path = 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
-			do
-				moduleLoaderOrFailedToFindExplanationString, filePath = originalLuaPathSearcher(modname)
-			end
-			package.path = originalPath
-			return moduleLoaderOrFailedToFindExplanationString, filePath
-		end,
-		function(modname)
-			local moduleLoaderOrFailedToFindExplanationString, filePath
-			local originalCPath = package.cpath
-			do
-				moduleLoaderOrFailedToFindExplanationString, filePath = originalLuaCPathSearcher(modname)
-			end
-			package.cpath = originalCPath
-			return moduleLoaderOrFailedToFindExplanationString, filePath
-		end,
-		function(modname)
-			local moduleLoaderOrFailedToFindExplanationString, filePath
-			local originalCPath = package.cpath
-			do
-				moduleLoaderOrFailedToFindExplanationString, filePath = originalLuaAllInOneCPathSearcher(modname)
-			end
-			package.cpath = originalCPath
-			return moduleLoaderOrFailedToFindExplanationString, filePath
-		end
-	}
-	table.insert(replacementSearchers, originalSearchers[1])
-	
-end
 
 -- Support being require'd ourselves
 if moduleName == '' then
 	
-	initialiseSearchPaths(findOurFolderPath(), {'..'}, siblingPath, initPath, namedInFolderPath)
+	modulesRootPath = concatenateToPath(findOurFolderPath(), '..')
 	
 	package.loaded[ourModuleName] = module
 	local halimedeTrace = require(ourModuleName .. '.trace')
