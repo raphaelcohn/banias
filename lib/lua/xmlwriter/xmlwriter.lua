@@ -27,61 +27,73 @@ function module.writeText(rawText)
 end
 local writeText = module.writeText
 
+local function constructAttribute(attributesArray, attributeName, attributeValue)
+	if attributeValue == '' then
+		--io.stderr:write('Empty attribute ' .. attributeName .. '\n')
+	end
+	
+	-- TODO: Clean up empty attributes, default attributes, etc
+	if attributeValue == '' then
+		return
+	end
+	
+	local quotationMark = '"'
+	local doubleQuotesPresent = false
+	local singleQuotePresent = false
+	
+	local escapedAttributeValue = attributeValue:gsub('[<>&"\']', function(matchedCharacter)
+		local result = alwaysEscapedCharacters[matchedCharacter]
+		if result ~= matchedCharacter then
+			return result
+		end
+		
+		if matchedCharacter == '"' then
+			quotationMark = "'"
+			doubleQuotesPresent = true
+		elseif matchedCharacter == '\'' then
+			singleQuotePresent = true
+		end
+		
+		return matchedCharacter
+	end)
+
+	local reEscapeBecauseBothDoubleAndSingleQuotesArePresent = doubleQuotesPresent and singleQuotePresent
+	if reEscapeBecauseBothDoubleAndSingleQuotesArePresent then
+		quotationMark = '"'
+		
+		escapedAttributeValue = attributeValue:gsub('[<>&"]', function(matchedCharacter)
+			local result = alwaysEscapedCharacters[matchedCharacter]
+			if result ~= matchedCharacter then
+				return result
+			end
+			
+			if matchedCharacter == '"' then
+				-- We do not return '&quot;' as it is more verbose; we save a byte
+				return '&#38;'
+			else
+				return matchedCharacter
+			end
+		end)
+	
+	end
+	
+	attributesArray:insert(' ' .. attributeName .. '=' .. quotationMark .. escapedAttributeValue .. quotationMark)
+end
+
+io.stderr:write('Optimise away empty global attributes like title, class and id; others check for boolean variants\n')
 local function writeAttributes(attributesTable)
-	assert.parameterTypeIsTable(attributesTable)
 	
 	local attributesArray = tabelize()
 
 	for attributeName, attributeValue in pairs(attributesTable) do
+		assert.parameterTypeIsString(attributeName)
+		assert.parameterTypeIsString(attributeValue)
 		
-		-- There is no continue in Lua, a serious omission that makes fail-fast harder than it needs to be: https://stackoverflow.com/questions/3524970/why-does-lua-have-no-continue-statement
-		-- Hence the double-negation test here, which I despise
-		if attributeValue ~= nil and attributeValue ~= '' then
-			
-			local quotationMark = '"'
-			local doubleQuotesPresent = false
-			local singleQuotePresent = false
-			
-			local escapedAttributeValue = attributeValue:gsub('[<>&"\']', function(matchedCharacter)
-				local result = alwaysEscapedCharacters[matchedCharacter]
-				if result ~= matchedCharacter then
-					return result
-				end
-				
-				if matchedCharacter == '"' then
-					quotationMark = "'"
-					doubleQuotesPresent = true
-				elseif matchedCharacter == '\'' then
-					singleQuotePresent = true
-				end
-				
-				return matchedCharacter
-			end)
-
-			local reEscapeBecauseBothDoubleAndSingleQuotesArePresent = doubleQuotesPresent and singleQuotePresent
-			if reEscapeBecauseBothDoubleAndSingleQuotesArePresent then
-				quotationMark = '"'
-				
-				escapedAttributeValue = attributeValue:gsub('[<>&"]', function(matchedCharacter)
-					local result = alwaysEscapedCharacters[matchedCharacter]
-					if result ~= matchedCharacter then
-						return result
-					end
-					
-					if matchedCharacter == '"' then
-						-- We do not return '&quot;' as it is more verbose; we save a byte
-						return '&#38;'
-					else
-						return matchedCharacter
-					end
-				end)
-			
-			end
-			
-			attributesArray:insert(' ' .. attributeName .. '=' .. quotationMark .. escapedAttributeValue .. quotationMark)
-		end
+		constructAttribute(attributesArray, attributeName, attributeValue)
 	end
 	
+	-- Sorted to ensure stable, diff-able XML output
+	attributesArray:sort()
 	return attributesArray:concat()
 end
 

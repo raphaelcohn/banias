@@ -16,25 +16,51 @@ local assert = require('halimede.assert')
 
 local tabelize = require('halimede.tabelize').tabelize
 
-local function htmlSimpleList(elementName, items)
+local exception = require('halimede.exception')
+
+local function htmlSimpleList(elementName, items, attributesTable)
 	
 	local buffer = tabelize()
 	for _, phrasingContent in pairs(items) do
 		assert.parameterTypeIsString(phrasingContent)
 		buffer:insert(writeXmlElement('li', phrasingContent))
 	end
-	return writeXmlElement(elementName, buffer:concat())
+	return writeXmlElement(elementName, buffer:concat(), attributesTable)
 end
 
 function BulletList(items)
 	assert.parameterTypeIsTable(items)
 	
-	return htmlSimpleList('ul', items)
+	return htmlSimpleList('ul', items, {})
 end
 
--- TODO: Use number, style and delimiter
-function OrderedList(items, number, style, delimiter)
+local pandocStyleToOlTypeMapping = setmetatable({
+	UpperAlpha = 'a',
+	LowerAlpha = 'A',
+	UpperRoman = 'i',
+	LowerRoman = 'I',
+	Decimal = '1',
+	DefaultStyle = '1',
+	Example = '1' -- Not really right
+}, {__index = function(_, key)
+	exception.throwWithLevelIncrement(1, "Do not recognise Pandoc ordered list style '%s'", key)
+end})
+
+-- TODO: Use delimiter DefaultDelim, Period, OneParen, TwoParens
+function OrderedList(items, start, style, delimiter)
 	assert.parameterTypeIsTable(items)
 	
-	return htmlSimpleList('ol', items)
+	local attributesTable = {}
+	if start ~= nil and start ~= 1 then
+		attributesTable.start = '' .. start
+	end
+	
+	if style ~= nil then
+		local type = pandocStyleToOlTypeMapping[style]
+		if type ~= '1' then
+			attributesTable.type = type
+		end
+	end
+	
+	return htmlSimpleList('ol', items, attributesTable)
 end

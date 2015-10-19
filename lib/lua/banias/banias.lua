@@ -4,25 +4,30 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 ]]--
 
 
--- Causes any missing function in the future to cause a warning; should be made into generic code (ie pre-pended)
--- setmetatable(_G, {
--- 	__index = function(tableLookedUp, missingFunctionInModule)
--- 		local messageTemplate = "WARN: Missing required function '%s'\n"
---
--- 		io.stderr:write(messageTemplate:format(missingFunctionInModule))
--- 		return function()
--- 			return ''
--- 		end
--- 	end
--- })
+local exception = require('halimede.exception')
+local assert = require('halimede').assert
 
+
+assert.globalTableHasChieldFieldOfTypeFunction('os', 'getenv')
+assert.globalTypeIsFunction('require')
 local function loadWriter()
 	local environmentVariable = 'PANDOC_LUA_BANIAS_WRITER'
 	local writer = os.getenv(environmentVariable)
 	if writer == nil then
-		error("The environment variable '" .. environmentVariable .. "' is not set")
+		exception.throw("The environment variable '%s' is not set", environmentVariable)
 	end
 	require('banias.' .. writer)
 end
 
+assert.globalTypeIsTable('_G')
+assert.globalTypeIsFunction('setmetatable')
+local function enableMissingFunctionWarnings()
+	setmetatable(_G, {
+		__index = function(tableLookedUp, missingFunctionInModule)
+			exception.throwWithLevelIncrement(1, "The global function '%s' is missing", missingFunctionInModule)
+		end
+	})
+end
+
 loadWriter()
+enableMissingFunctionWarnings()

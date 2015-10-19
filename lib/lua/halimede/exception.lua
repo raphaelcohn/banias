@@ -6,9 +6,17 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 
 local assert = requireSibling('assert')
 
+
 assert.globalTableHasChieldFieldOfTypeFunction('string', 'format')
+function module.throwWithLevelIncrement(levelIncrement, template, ...)
+	assert.parameterTypeIsString(template)
+	
+	error(template:format(...), 2 + levelIncrement)
+end
+local throwWithLevelIncrement = module.throwWithLevelIncrement
+
 function module.throw(template, ...)
 	assert.parameterTypeIsString(template)
 	
-	error(template:format(...))
+	return throwWithLevelIncrement(1, template, ...)
 end

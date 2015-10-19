@@ -16,10 +16,12 @@ local writeXmlElement = xmlwriter.writeXmlElement
 
 local assert = require('halimede.assert')
 
--- Inline LuaRocks  http://lua-users.org/wiki/InlineCee
--- Pandoc uses Lua, not LuaJIT, and uses Lua 5.1 (irritatingly)
--- Compatibility must be XHTML5
--- http://www.w3.org/html/wg/drafts/html/master/dom.html#phrasing-content-2
+--[[TODO:
+* Header Numbering (class header-section-number)
+* Ordered List Delimiters
+* MathML et al (https://github.com/jgm/pandoc/blob/34d53aff6e0237c4934024a413a5b722666cc487/src/Text/Pandoc/Writers/HTML.hs) line 720
+* Quoting works, but we ignore HTML <q> tags as the alternative
+]]
 
 --[[
 Required styles:-
@@ -134,7 +136,9 @@ function RawBlock(format, content)
 	if format == 'html' then
 		return content
 	else
-		return writeXmlElement('pre', writeText(content))
+		-- Just drop the output; Pandoc only supports MathJax in RawBlock
+		return ''
+		--return writeXmlElement('pre', writeText(content))
 	end
 end
 
@@ -324,7 +328,10 @@ function RawInline(format, content)
 	if format == 'html' then
 		return content
 	else
-		return writeXmlElement('code', writeText(content))
+		-- Could be latex, Pandoc here only supports LaTeXMathML and MathJax
+		-- Commenting is dangerous; -- needs removing, as does ]]> and they still exist as nodes, so we simply silently drop them from output
+		return ''
+		--return writeXmlElement('code', writeText(content))
 	end
 end
 

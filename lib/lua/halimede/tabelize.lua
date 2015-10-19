@@ -17,7 +17,7 @@ assert.globalTableHasChieldFieldOfTypeFunction('table', 'concat', 'insert', 'rem
 function module.tabelize(optionalValueToTabelize)
 	
 	local valueToTabelize
-	if tableLiteral ~= nil then
+	if optionalValueToTabelize ~= nil then
 		assert.parameterTypeIsTable(optionalValueToTabelize)
 		valueToTabelize = optionalValueToTabelize
 	else
