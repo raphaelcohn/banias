@@ -6,13 +6,11 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 
 local xmlwriter = require('xmlwriter')
 local writeText = xmlwriter.writeText
-local attributes = xmlwriter.attributes
 local writeXmlElementNameWithAttributes = xmlwriter.writeXmlElementNameWithAttributes
 local writeXmlElementOpenTag = xmlwriter.writeXmlElementOpenTag
 local writeXmlElementCloseTag = xmlwriter.writeXmlElementCloseTag
 local writeXmlElementEmptyTag = xmlwriter.writeXmlElementEmptyTag
-local writePotentiallyEmptyXml = xmlwriter.writePotentiallyEmptyXml
-local writePotentiallyEmptyXmlWithAttributes = xmlwriter.writePotentiallyEmptyXmlWithAttributes
+local writeXmlElement = xmlwriter.writeXmlElement
 
 local assert = require('halimede.assert')
 
@@ -49,14 +47,14 @@ function Table(caption, pandocAlignments, widths, headers, rows)
 	add(writeXmlElementOpenTag('table'))
   
 	if caption ~= '' then
-		add(writePotentiallyEmptyXml('caption', caption))
+		add(writeXmlElement('caption', caption))
 	end
 	
 	if widths and widths[1] ~= 0 then
     	for _, width in pairs(widths) do
 			assert.parameterIsNumber(width)
 			local percentageWidth = string.format('%d%%', width * 100)
-			add(writePotentiallyEmptyXmlWithAttributes('col', '', {width = percentageWidth}))
+			add(writeXmlElement('col', '', {width = percentageWidth}))
 		end
 	end
 	
@@ -65,7 +63,7 @@ function Table(caption, pandocAlignments, widths, headers, rows)
 	for columnIndex, headerCellPhrasedContent in pairs(headers) do
 		assert.parameterIsString(headerCellPhrasedContent)
 		local align = pandocToHtmlAlignmentLookUp[pandocAlignments[columnIndex]]
-		headerRow:insert(writePotentiallyEmptyXmlWithAttributes('th', headerCellPhrasedContent, {class = 'align ' .. align}))
+		headerRow:insert(writeXmlElement('th', headerCellPhrasedContent, {class = 'align ' .. align}))
 		isHeaderEmpty = isHeaderEmpty and headerCellPhrasedContent == ''
 	end
 	if not isHeaderEmpty then
@@ -84,7 +82,7 @@ function Table(caption, pandocAlignments, widths, headers, rows)
 		for columnIndex, rowCellPhrasedContent in pairs(row) do
 			assert.parameterIsString(rowCellPhrasedContent)
 			local align = pandocToHtmlAlignmentLookUp[pandocAlignments[columnIndex]]
-			add(writePotentiallyEmptyXmlWithAttributes('td', rowCellPhrasedContent, {class = 'align ' .. align}))
+			add(writeXmlElement('td', rowCellPhrasedContent, {class = 'align ' .. align}))
 		end
 		add(writeXmlElementCloseTag('tr'))
 	end

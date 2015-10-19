@@ -27,7 +27,7 @@ function module.writeText(rawText)
 end
 local writeText = module.writeText
 
-function module.attributes(attributesTable)
+local function writeAttributes(attributesTable)
 	assert.parameterIsTable(attributesTable)
 	
 	local attributesArray = tabelize()
@@ -84,13 +84,12 @@ function module.attributes(attributesTable)
 	
 	return attributesArray:concat()
 end
-local attributes = module.attributes
 
 function module.writeXmlElementNameWithAttributes(elementName, attributesTable)
 	assert.parameterIsString(elementName)
 	assert.parameterIsTable(attributesTable)
 	
-	return elementName .. attributes(attributesTable)
+	return elementName .. writeAttributes(attributesTable)
 end
 local writeXmlElementNameWithAttributes = module.writeXmlElementNameWithAttributes
 
@@ -115,21 +114,17 @@ function module.writeXmlElementEmptyTag(elementNameOrElementNameWithAttributes)
 end
 local writeXmlElementEmptyTag = module.writeXmlElementEmptyTag
 
-function module.writePotentiallyEmptyXml(elementName, phrasingContent)
-	assert.parameterIsString(elementName)
-	assert.parameterIsString(phrasingContent)
-	
-	if phrasingContent == '' then
-		return module.writeXmlElementEmptyTag(elementName)
-	end
-	return writeXmlElementOpenTag(elementName) .. phrasingContent .. writeXmlElementCloseTag(elementName)
-end
-local writePotentiallyEmptyXml = module.writePotentiallyEmptyXml
-
-function module.writePotentiallyEmptyXmlWithAttributes(elementName, phrasingContent, attributesTable)
+function module.writeXmlElement(elementName, phrasingContent, optionalAttributesTable)
 	assert.parameterIsString(elementName)
 	assert.parameterIsString(phrasingContent)
 	assert.parameterIsTable(attributesTable)
+	
+	local attributesTable
+	if optionalAttributesTable == nil then
+		attributesTable = {}
+	else
+		attributesTable = optionalAttributesTable
+	end
 	
 	element = writeXmlElementNameWithAttributes(elementName, attributesTable)
 	if phrasingContent == '' then
@@ -137,4 +132,4 @@ function module.writePotentiallyEmptyXmlWithAttributes(elementName, phrasingCont
 	end
 	return writeXmlElementOpenTag(element) .. phrasingContent .. writeXmlElementCloseTag(elementName)
 end
-local writePotentiallyEmptyXmlWithAttributes = module.writePotentiallyEmptyXmlWithAttributes
+local writeXmlElement = module.writeXmlElement
