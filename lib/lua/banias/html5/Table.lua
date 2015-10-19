@@ -14,6 +14,8 @@ local xmlElementEmptyTag = xml.xmlElementEmptyTag
 local potentiallyEmptyXml = xml.potentiallyEmptyXml
 local potentiallyEmptyXmlWithAttributes = xml.potentiallyEmptyXmlWithAttributes
 
+local assert = require('halimede.assert')
+
 local tabelize = require('halimede.tabelize').tabelize
 
 -- Or use style="text-align:VALUE;" Or use class="align-VALUE"
@@ -31,6 +33,12 @@ local pandocToHtmlAlignmentLookUp = setmetatable({
 )
 
 function Table(caption, pandocAlignments, widths, headers, rows)
+
+	assert.parameterIsString(caption)
+	assert.parameterIsTable(pandocAlignments)
+	assert.parameterIsTable(widths)
+	assert.parameterIsTable(headers)
+	assert.parameterIsTable(rows)
 	
 	local buffer = tabelize()
 	
@@ -46,6 +54,7 @@ function Table(caption, pandocAlignments, widths, headers, rows)
 	
 	if widths and widths[1] ~= 0 then
     	for _, width in pairs(widths) do
+			assert.parameterIsNumber(width)
 			local percentageWidth = string.format('%d%%', width * 100)
 			add(potentiallyEmptyXmlWithAttributes('col', '', {width = percentageWidth}))
 		end
@@ -54,6 +63,7 @@ function Table(caption, pandocAlignments, widths, headers, rows)
 	local headerRow = tabelize()
 	local isHeaderEmpty = true
 	for columnIndex, headerCellPhrasedContent in pairs(headers) do
+		assert.parameterIsString(headerCellPhrasedContent)
 		local align = pandocToHtmlAlignmentLookUp[pandocAlignments[columnIndex]]
 		headerRow:insert(potentiallyEmptyXmlWithAttributes('th', headerCellPhrasedContent, {class = 'align ' .. align}))
 		isHeaderEmpty = isHeaderEmpty and headerCellPhrasedContent == ''
@@ -68,9 +78,11 @@ function Table(caption, pandocAlignments, widths, headers, rows)
 	
 	local class = 'even'
 	for _, row in pairs(rows) do
+		assert.parameterIsTable(row)
 		class = (class == 'even' and 'odd') or 'even'
 		add(xmlElementOpenTag(xmlElementNameWithAttributes('tr', {class = class})))
 		for columnIndex, rowCellPhrasedContent in pairs(row) do
+			assert.parameterIsString(rowCellPhrasedContent)
 			local align = pandocToHtmlAlignmentLookUp[pandocAlignments[columnIndex]]
 			add(potentiallyEmptyXmlWithAttributes('td', rowCellPhrasedContent, {class = 'align ' .. align}))
 		end

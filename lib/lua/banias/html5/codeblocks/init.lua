@@ -14,7 +14,13 @@ local xmlElementEmptyTag = xml.xmlElementEmptyTag
 local potentiallyEmptyXml = xml.potentiallyEmptyXml
 local potentiallyEmptyXmlWithAttributes = xml.potentiallyEmptyXmlWithAttributes
 
+local assert = require('halimede.assert')
+
 function default(rawCodeString, attributesTable)
+	
+	assert.parameterIsString(rawCodeString)
+	assert.parameterIsTable(attributesTable)
+	
 	-- TODO: Consider adding highlighters here, eg using kate
 	return potentiallyEmptyXml('pre', potentiallyEmptyXmlWithAttributes('code', escapeRawText(rawCodeString), attributesTable))
 end
@@ -22,14 +28,22 @@ module.default = default
 
 local functions = setmetatable({}, {
 	__index = function(_, key)
+
+		assert.parameterIsTable(_)
+		assert.parameterIsString(key)
+		
 		return default
 	end
 })
 module.functions = functions
 
 module.register = function(name, someCodeBlockFunction)
+	
+	assert.parameterIsString(name)
+	assert.parameterIsFunction(someCodeBlockFunction)
+	
 	functions[name] = someCodeBlockFunction
 end
 
--- TODO: Load all submodules, do registration, etc
+-- TODO: Load all submodules that are present!
 requireChild('dot')

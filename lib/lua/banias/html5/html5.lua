@@ -5,7 +5,6 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 
 
 local tabelize = require('halimede.tabelize').tabelize
-local shell = require('halimede.shell').shell
 
 local xml = require('xml')
 local escapeRawText = xml.escapeRawText
@@ -16,6 +15,8 @@ local xmlElementCloseTag = xml.xmlElementCloseTag
 local xmlElementEmptyTag = xml.xmlElementEmptyTag
 local potentiallyEmptyXml = xml.potentiallyEmptyXml
 local potentiallyEmptyXmlWithAttributes = xml.potentiallyEmptyXmlWithAttributes
+
+local assert = require('halimede.assert')
 
 -- Inline LuaRocks  http://lua-users.org/wiki/InlineCee
 -- Pandoc uses Lua, not LuaJIT, and uses Lua 5.1 (irritatingly)
@@ -91,6 +92,11 @@ local footnotes = tabelize()
 --TODO: Add meta author, dcterms.date to ?metadata?
 --TODO: Missing <title></title>!
 function Doc(body, metadata, variables)
+
+	assert.parameterIsString(body)
+	assert.parameterIsTable(metadata)
+	assert.parameterIsTable(variables)
+	
 	local buffer = tabelize()
 	
 	local function add(content)
@@ -115,26 +121,19 @@ function Plain(phrasingContent)
 	return phrasingContent
 end
 
-function CaptionedImage(url, title, altText)
-	
-	local buffer = tabelize()
-	local function add(content)
-		buffer:insert(content)
-	end
-	
-	add(xmlElementOpenTag('figure'))
-	add(Image(altText, url, title))
-	add(potentiallyEmptyXml('figcaption', altText))
-	add(xmlElementCloseTag('figure'))
-	
-	return buffer:concat()
-end
+-- CaptionedImage() supplied by Image()
+requireChild('Image')
 
 function Para(phrasingContent)
+	assert.parameterIsString(phrasingContent)
+	
 	return potentiallyEmptyXml('p', phrasingContent)
 end
 
 function RawBlock(format, content)
+	assert.parameterIsString(format)
+	assert.parameterIsString(content)
+	
 	if format == 'html' then
 		return content
 	else
@@ -147,6 +146,10 @@ function HorizontalRule()
 end
 
 function Header(oneBasedLevelInteger, phrasingContent, attributesTable)
+	assert.parameterIsNumber(oneBasedLevelInteger)
+	assert.parameterIsString(phrasingContent)
+	assert.parameterIsTable(attributesTable)
+	
 	return potentiallyEmptyXmlWithAttributes('h' .. oneBasedLevelInteger, phrasingContent, attributesTable)
 end
 
@@ -154,6 +157,9 @@ local codeblocks = requireChild('codeblocks')
 local functions = codeblocks.functions
 
 function CodeBlock(rawCodeString, attributesTable)
+	assert.parameterIsString(rawCodeString)
+	assert.parameterIsTable(attributesTable)
+	
 	local class = attributesTable.class
 	if class then
 		return functions[class](rawCodeString, attributesTable)
@@ -163,6 +169,8 @@ function CodeBlock(rawCodeString, attributesTable)
 end
 
 function BlockQuote(phrasingContent)
+	assert.parameterIsString(phrasingContent)
+	
 	return potentiallyEmptyXml('blockquote', phrasingContent)
 end
 
@@ -173,6 +181,8 @@ requireChild('BulletListAndOrderedList')
 -- TODO: Use <defn> tag to define a term in the <dt>, eg <dt><defn>hello</defn></dt><dd>A way to greet someone</dd></dt>
 -- TODO: Tag ommission rules for dd / dt  http://www.w3.org/html/wg/drafts/html/master/semantics.html#the-dl-element
 function DefinitionList(items)
+	assert.parameterIsTable(items)
+	
 	local buffer = tabelize()
 	
 	local function add(content)
@@ -180,7 +190,11 @@ function DefinitionList(items)
 	end
 	
 	for _, item in pairs(items) do
+		assert.parameterIsTable(item)
+	
 		for definitionTerm, definitions in pairs(item) do
+			assert.parameterIsString(definitionTerm)
+			assert.parameterIsTable(definitions)
 			
 			add(potentiallyEmptyXml('dt', definitionTerm))
 			
@@ -194,6 +208,9 @@ end
 
 -- TODO: No use of <section>? Why?
 function Div(content, attributesTable)
+	assert.parameterIsString(content)
+	assert.parameterIsTable(attributesTable)
+	
 	return potentiallyEmptyXmlWithAttributes('div', content, attributesTable)
 end
 
@@ -202,6 +219,7 @@ function Blocksep()
 end
 
 function Str(rawText)
+	assert.parameterIsString(rawText)
 	return escapeRawText(rawText)
 end
 
@@ -210,47 +228,59 @@ function Space()
 end
 
 function Emph(phrasingContent)
+	assert.parameterIsString(phrasingContent)
 	return potentiallyEmptyXml('em', phrasingContent)
 end
 
 function Strong(phrasingContent)
+	assert.parameterIsString(phrasingContent)
 	return potentiallyEmptyXml('strong', phrasingContent)
 end
 
 function Strikeout(phrasingContent)
+	assert.parameterIsString(phrasingContent)
 	return potentiallyEmptyXml('del', phrasingContent)
 end
 
 function Subscript(phrasingContent)
+	assert.parameterIsString(phrasingContent)
 	return potentiallyEmptyXml('sub', phrasingContent)
 end
 
 function Superscript(phrasingContent)
+	assert.parameterIsString(phrasingContent)
 	return potentiallyEmptyXml('sup', phrasingContent)
 end
 
 function SmallCaps(phrasingContent)
+	assert.parameterIsString(phrasingContent)
 	-- was style = 'font-variant: small-caps;'  but this is longer than class="smallcaps"
 	return potentiallyEmptyXmlWithAttributes('span', phrasingContent, {class = 'smallcaps'})
 end
 
-local singleOpeningQuote = '\226\128\152' -- LEFT SINGLE QUOTATION MARK, Unicode: U+2018, UTF-8: E2 80 98
-local singleClosingQuote = '\226\128\153' -- RIGHT SINGLE QUOTATION MARK, Unicode: U+2019, UTF-8: E2 80 99
+local singleOpeningQuoteUtf8 = '\226\128\152' -- LEFT SINGLE QUOTATION MARK, Unicode: U+2018, UTF-8: E2 80 98
+local singleClosingQuoteUtf8 = '\226\128\153' -- RIGHT SINGLE QUOTATION MARK, Unicode: U+2019, UTF-8: E2 80 99
 function SingleQuoted(phrasingContent)
-	return singleOpeningQuote .. phrasingContent .. singleClosingQuote
+	assert.parameterIsString(phrasingContent)
+	return singleOpeningQuoteUtf8 .. phrasingContent .. singleClosingQuote
 end
 
-local doubleOpeningQuote = '\226\128\156' -- LEFT DOUBLE QUOTATION MARK, Unicode: U+201C, UTF-8: E2 80 9C
-local doubleClosingQuote = '\226\128\157' -- RIGHT DOUBLE QUOTATION MARK, Unicode: U+201D, UTF-8: E2 80 9D
+local doubleOpeningQuoteUtf8 = '\226\128\156' -- LEFT DOUBLE QUOTATION MARK, Unicode: U+201C, UTF-8: E2 80 9C
+local doubleClosingQuoteUtf8 = '\226\128\157' -- RIGHT DOUBLE QUOTATION MARK, Unicode: U+201D, UTF-8: E2 80 9D
 function DoubleQuoted(phrasingContent)
-	return doubleOpeningQuote .. phrasingContent .. doubleClosingQuote
+	assert.parameterIsString(phrasingContent)
+	return doubleOpeningQuoteUtf8 .. phrasingContent .. doubleClosingQuote
 end
 
 function Cite(phrasingContent, citations)
-	local identifiers = tablelize({})
+	assert.parameterIsString(phrasingContent)
+	assert.parameterIsTable(citations)
 	
-	-- Also citationPrefix, citationSuffix, citationMode, citationNoteNum, citationHash
+	local identifiers = tablelize()
+	
+	-- Also .citationPrefix, .citationSuffix, .citationMode, .citationNoteNum, .citationHash
 	for _, citation in ipairs(citations) do
+		assert.parameterIsTable(citation)
 		identifiers:insert(citation.citationId)
 	end
 	
@@ -263,18 +293,25 @@ function Cite(phrasingContent, citations)
 end
 
 function Code(rawCodeString, attributesTable)
+	assert.parameterIsString(rawCodeString)
+	assert.parameterIsTable(attributesTable)
 	return potentiallyEmptyXmlWithAttributes('code', escapeRawText(rawCodeString), attributesTable)
 end
 
 function DisplayMath(rawText)
+	assert.parameterIsString(rawText)
 	return '\\[' .. escapeRawText(rawText) .. '\\]'
 end
 
 function InlineMath(rawText)
+	assert.parameterIsString(rawText)
 	return '\\(' .. escapeRawText(rawText) .. '\\)'
 end
 
 function RawInline(format, content)
+	assert.parameterIsString(format)
+	assert.parameterIsString(content)
+	
 	if format == 'html' then
 		return content
 	else
@@ -287,45 +324,22 @@ function LineBreak()
 end
 
 function Link(phrasingContent, url, title)
+	assert.parameterIsString(phrasingContent)
+	assert.parameterIsString(url)
+	assert.parameterIsString(title)
+	
 	return potentiallyEmptyXmlWithAttributes('a', phrasingContent, {url = url, title = title})
 end
 
-function Image(altText, url, titleWithoutSmartQuotes)
-	
-	local conversionMapping = {
-		'width',
-		'x',
-		'height'
-	}
-	
-	-- TODO: If URL doesn't start with '/' then embed? Or does the symlink point to a FOLDER?
-	
-	-- TODO: this is where we can embed our size logic with jpeginfo
-	local shell = require('banias').shell
-	-- jpeginfo --info --lsstyle html5/banias-spring.jpg
-	-- 2592 x 1944 24bit Exif  Normal Huffman 1303996 html5/banias-spring.jpg
-	-- TODO: Check if jpeg using file xxx, may be it's a PNG or GIF
-	-- TODO: Test converting to PNG or GIF for smaller sizes
-	-- TODO: Don't base64 encode unless necessary
-	local line = shell('jpeginfo', '--info', '--lsstyle', url)
-	local index = 1
-	local jpegInfo = {}
-	for fragment in line:gmatch('([^ ]+)') do
-		if index > #conversionMapping then
-			break
-		end
-		jpegInfo[conversionMapping[index]] = fragment
-		
-		index = index + 1
-	end
-	return potentiallyEmptyXmlWithAttributes('img', '', {url = url, title = titleWithoutSmartQuotes, alt = altText, width = jpegInfo.width, height = jpegInfo.height})
-end
+requireChild('Image')
 
 -- HTML Entity '&#8617;' replaced with UTF-8 encoding for efficiency
 local unicodeLeftwardArrowWithHookInUtf8 = '\226\134\169'
 local footnoteIdentifierPrefix = 'fn'
 local footnoteReferenceIdentifierPrefix = footnoteIdentifierPrefix .. 'ref'
 function Note(phrasingContent)
+	assert.parameterIsString(phrasingContent)
+	
 	local oneBasedFootnoteIndex = #footnotes + 1
 	
 	local footnoteIdentifier = footnoteIdentifierPrefix .. oneBasedFootnoteIndex
@@ -342,6 +356,9 @@ function Note(phrasingContent)
 end
 
 function Span(phrasingContent, attributesTable)
+	assert.parameterIsString(phrasingContent)
+	assert.parameterIsTable(attributesTable)
+	
 	return potentiallyEmptyXmlWithAttributes('span', phrasingContent, attributesTable)
 end
 

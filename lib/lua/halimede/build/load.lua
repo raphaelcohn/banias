@@ -4,24 +4,15 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 ]]--
 
 
+xxxx: requireParent('xxxx')
 local assert = requireSibling('assert')
-local tabelize = requireSibling('tabelize').tabelize
 
-function module.shell(...)
+function module.loadRockSpec(rockSpecFilePath)
 	
-	local arguments = {...}
+	assert.parameterTypeIsString(rockSpecFilePath)
 	
-	local commandBuffer = tabelize()
+	-- need to create an environment
+	local environment = {}
 	
-	for _, argument in ipairs(arguments) do
-		assert.parameterTypeIsString(argument)
-		commandBuffer:insert("'" .. argument:gsub("'", "''") .. "'")
-	end
 	
-	local fileHandle = io.popen(commandBuffer:concat(' '), 'r')
-	assert(fileHandle)
-	local standardOutCaptured = fileHandle:read('*all')
-	fileHandle:close()
-	
-	return standardOutCaptured
 end

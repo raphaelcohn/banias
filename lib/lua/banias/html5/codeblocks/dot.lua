@@ -14,9 +14,14 @@ local xmlElementEmptyTag = xml.xmlElementEmptyTag
 local potentiallyEmptyXml = xml.potentiallyEmptyXml
 local potentiallyEmptyXmlWithAttributes = xml.potentiallyEmptyXmlWithAttributes
 
+local assert = require('halimede.assert')
+
 -- Runs dot then base64 on 'rawCodeString' to produce a base64-encoded png in a data: URL
 -- Added to retain compatibility with JGM
 parentModule.register(leafModuleName, function(rawCodeString, attributesTable)
+	
+	assert.parameterIsString(rawCodeString)
+	assert.parameterIsTable(attributesTable)
 	
 	-- TODO: replace os.tmpname with io.tmpfile - http://www.lua.org/manual/5.2/manual.html#6.8 - but no way to get file name...
 	local function pipe(programCommandStringWithEscapedData, inputBytes)

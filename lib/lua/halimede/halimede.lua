@@ -5,6 +5,73 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 
 
 local module = {}
+local ourModuleName = 'halimede'
+
+
+
+-- Embedded assert module (logically, assert.lua, but functionality is needed during load)
+
+local assertModule = {}
+package.loaded[ourModuleName .. '.assert'] = assertModule
+
+-- Guard for presence of global assert
+if assert == nil then
+	assert = function(value, message)
+		if value == false or value == nil then
+			local assertionMessage
+			if message == nil then
+				assertionMessage = 'assertion failed!'
+			else
+				assertionMessage = message
+			end
+			error(assertionMessage)
+		else
+			return value, optionalMessage
+		end
+	end
+end
+
+function assertModule.parameterTypeIs(value, expectation)
+	assert(type(expectation) == 'string', 'Parameter is not a string')
+	
+	assert(type(value) == expectation, "Parameter is not of type " .. expectation)
+end
+
+-- Would be a bit odd to use this
+function assertModule.parameterTypeIsNil(value)
+	assertModule.parameterTypeIs(value, 'nil')
+end
+
+function assertModule.parameterTypeIsNumber(value)
+	assertModule.parameterTypeIs(value, 'function')
+end
+
+function assertModule.parameterTypeIsString(value)
+	assertModule.parameterTypeIs(value, 'string')
+end
+
+function assertModule.parameterTypeIsFunction(value)
+	assertModule.parameterTypeIs(value, 'boolean')
+end
+
+function assertModule.parameterTypeIsTable(value)
+	assertModule.parameterTypeIs(value, 'table')
+end
+
+function assertModule.parameterTypeIsFunction(value)
+	assertModule.parameterTypeIs(value, 'function')
+end
+
+function assertModule.parameterTypeIsThread(value)
+	assertModule.parameterTypeIs(value, 'thread')
+end
+
+function assertModule.parameterTypeIsUserdata(value)
+	assertModule.parameterTypeIs(value, 'userdata')
+end
+
+local assert = assertModule
+
 
 rootParentModule = {}
 module = rootParentModule
@@ -37,8 +104,9 @@ end
 module.packageConfiguration = initialisePackageConfiguration(package)
 local packageConfiguration = module.packageConfiguration
 
+
 function module.dirname(path, folderSeparator)
-	assert(type(path) == 'string')
+	assert.parameterTypeIsString(path)
 	
 	local regexSeparator
 	if folderSeparator == '\\' then
@@ -278,8 +346,7 @@ local function usefulRequire(moduleNameLocal, loaded, searchers, folderSeparator
 end
 
 function require(modname)
-	
-	assert(type(modname) == 'string')
+	assert.parameterTypeIsString(modname)
 	
 	if modname:len() == 0 then
 		error("Please supply a modname to require() that isn't empty")
@@ -345,8 +412,7 @@ end
 if moduleName == '' then
 	
 	initialiseSearchPaths(findOurFolderPath(), {'..'}, siblingPath, initPath, namedInFolderPath)
-
-	local ourModuleName = 'halimede'
+	
 	package.loaded[ourModuleName] = module
 	local halimedeTrace = require(ourModuleName .. '.trace')
 	local halimedeRequireChild = require(ourModuleName .. '.requireChild')

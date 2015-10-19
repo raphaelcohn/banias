@@ -4,12 +4,14 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 ]]--
 
 
+local assert = requireSibling('assert')
+
 -- Adds the table.concat, table.insert, etc methods to optionalValueToTabelize, or returns an empty table with them added
 function module.tabelize(optionalValueToTabelize)
 	
 	local valueToTabelize
 	if tableLiteral ~= nil then
-		assert(type(optionalValueToTabelize) == 'table')
+		assert.parameterTypeIsTable(argument)
 		valueToTabelize = optionalValueToTabelize
 	else
 		valueToTabelize = {}

@@ -4,8 +4,11 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 ]]--
 
 
+local assert = requireSibling('assert')
+
 function requireSibling(siblingModuleElementName)
-	assert(type(siblingModuleElementName) == 'string')
+	assert.parameterTypeIsString(siblingModuleElementName)
+	
 	local grandParentModuleName, _ = parentModuleNameFromModuleName(parentModuleName)
 	local requiredModuleName
 	if grandParentModuleName == '' then

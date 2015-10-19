@@ -4,7 +4,10 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 ]]--
 
 
+local assert = requireSibling('assert')
+
 function requireChild(childModuleElementName)
-	assert(type(childModuleElementName) == 'string')
+	assert.parameterTypeIsString(childModuleElementName)
+	
 	return require(parentModuleName .. '.' .. childModuleElementName)
 end

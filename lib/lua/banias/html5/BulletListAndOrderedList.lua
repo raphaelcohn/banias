@@ -14,11 +14,15 @@ local xmlElementEmptyTag = xml.xmlElementEmptyTag
 local potentiallyEmptyXml = xml.potentiallyEmptyXml
 local potentiallyEmptyXmlWithAttributes = xml.potentiallyEmptyXmlWithAttributes
 
+local assert = require('halimede.assert')
+
 local tabelize = require('halimede.tabelize').tabelize
 
 local function htmlSimpleList(elementName, items)
+	
 	local buffer = tabelize()
 	for _, phrasingContent in pairs(items) do
+		assert.parameterIsString(phrasingContent)
 		buffer:insert(potentiallyEmptyXml('li', phrasingContent))
 	end
 	return potentiallyEmptyXml(elementName, buffer:concat())
@@ -26,10 +30,16 @@ end
 local htmlSimpleList = module.htmlSimpleList
 
 function BulletList(items)
+	
+	assert.parameterIsTable(items)
+	
 	return htmlSimpleList('ul', items)
 end
 
--- TODO: Use numer, style and delimiter
+-- TODO: Use number, style and delimiter
 function OrderedList(items, number, style, delimiter)
+	
+	assert.parameterIsTable(items)
+	
 	return htmlSimpleList('ol', items)
 end
