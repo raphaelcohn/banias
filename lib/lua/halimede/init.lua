@@ -490,7 +490,7 @@ local function usefulRequire(moduleNameLocal, loaded, searchers, folderSeparator
 		
 			local ourResult
 			if result == nil then
-				ourResult = moduleLocal
+				ourResult = module
 			else
 				if type(result) == 'table' then
 					ourResult = result

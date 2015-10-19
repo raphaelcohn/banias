@@ -4,13 +4,13 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 ]]--
 
 
-local xmlwriter = require('xmlwriter')
-local writeText = xmlwriter.writeText
-local writeElementNameWithAttributes = xmlwriter.writeElementNameWithAttributes
-local writeElementOpenTag = xmlwriter.writeElementOpenTag
-local writeElementCloseTag = xmlwriter.writeElementCloseTag
-local writeElementEmptyTag = xmlwriter.writeElementEmptyTag
-local writeElement = xmlwriter.writeElement
+local HtmlWriter = require('markuplanguagewriter.htmlwriter')
+local writeText = HtmlWriter.writeText
+local writeElementNameWithAttributes = HtmlWriter.writeElementNameWithAttributes
+local writeElementOpenTag = HtmlWriter.writeElementOpenTag
+local writeElementEmptyTag = HtmlWriter.writeElementEmptyTag
+local writeElementCloseTag = HtmlWriter.writeElementCloseTag
+local writeElement = HtmlWriter.writeElement
 
 local assert = require('halimede.assert')
 
