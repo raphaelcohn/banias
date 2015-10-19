@@ -3,10 +3,10 @@
 cd "$(dirname "$0")" 1>/dev/null
 # Oddly, makes the alt text use smart quotes but not the title of an image...
 pandoc --smart --toc --to html5 -o html5.orig.html --template ../banias/html5/template.html html5.md
-export LUA_HALIMEDE_TRACE='false'
+export LUA_HALIMEDE_TRACE='true'
 path=..
-export LUA_PATH="$path/?.lua;$path/?/init.lua;$path/?/?.lua"
-export LUA_CPATH="$path/?.so;$path/?/init.so;$path/?/?.so"
+export LUA_PATH="$path/?.lua;$path/?/init.lua"
+export LUA_CPATH="$path/?.so;$path/?/init.so"
 PANDOC_LUA_BANIAS_WRITER='html5' pandoc --smart --toc --to "$path"/pandocwriter.lua -o html5.html --template ../banias/html5/template.html html5.md
 
 # TODO on output - run through pigz -11 to really create a crushed gzip'd file

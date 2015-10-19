@@ -5,8 +5,7 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 
 
 local halimede = require('halimede')
-local assert = requireSibling('assert')
-
+local assert = halimede.assert
 
 local function traceIfRequired()
 	

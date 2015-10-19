@@ -5,8 +5,7 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 
 
 local halimede = require('halimede')
-
-local assert = {}
+local assert = halimede.assert
 
 function requireSibling(siblingModuleElementName)
 	assert.parameterTypeIsString(siblingModuleElementName)
@@ -20,5 +19,3 @@ function requireSibling(siblingModuleElementName)
 	end
 	return require(requiredModuleName)
 end
-
-assert = requireSibling('assert')

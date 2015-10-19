@@ -4,7 +4,7 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 ]]--
 
 
-local module = {}
+local ourModule = {}
 local ourModuleName = 'halimede'
 
 rootParentModule = {}
@@ -21,6 +21,7 @@ modulesRootPath = ''
 
 local assertModule = {}
 package.loaded[ourModuleName .. '.assert'] = assertModule
+
 
 -- Best efforts for failing if error is missing
 if error == nil then
@@ -59,10 +60,16 @@ if assert == nil then
 	end
 end
 
-function assertModule.parameterTypeIs(value, expectation)
-	assert(type(expectation) == 'string', 'Parameter is not a string')
-	
-	assert(type(value) == expectation, "Parameter is not a " .. expectation)
+function assertModule.withLevel(booleanResult, message, level)
+	if booleanResult then
+		return
+	end
+	error(message, level)
+end
+local withLevel = assertModule.withLevel
+
+local function parameterTypeIs(value, expectation)
+	withLevel(type(value) == expectation, "Parameter is not a " .. expectation, 4)
 end
 
 -- Would be a bit odd to use this
@@ -71,37 +78,39 @@ function assertModule.parameterTypeIsNil(value)
 end
 
 function assertModule.parameterTypeIsNumber(value)
-	assertModule.parameterTypeIs(value, 'number')
+	parameterTypeIs(value, 'number')
 end
 
 function assertModule.parameterTypeIsString(value)
-	assertModule.parameterTypeIs(value, 'string')
+	parameterTypeIs(value, 'string')
 end
 
 function assertModule.parameterTypeIsFunction(value)
-	assertModule.parameterTypeIs(value, 'boolean')
+	parameterTypeIs(value, 'boolean')
 end
 
 function assertModule.parameterTypeIsTable(value)
-	assertModule.parameterTypeIs(value, 'table')
+	parameterTypeIs(value, 'table')
 end
 
 function assertModule.parameterTypeIsFunction(value)
-	assertModule.parameterTypeIs(value, 'function')
+	parameterTypeIs(value, 'function')
 end
 
 function assertModule.parameterTypeIsThread(value)
-	assertModule.parameterTypeIs(value, 'thread')
+	parameterTypeIs(value, 'thread')
 end
 
 function assertModule.parameterTypeIsUserdata(value)
-	assertModule.parameterTypeIs(value, 'userdata')
+	parameterTypeIs(value, 'userdata')
 end
 
-function assertModule.globalTypeIs(expectation, ...)
+local function globalTypeIs(expectation, ...)
 	assertModule.parameterTypeIsString(expectation)
 
-	assert(_G ~= nil, "Global environment '_G' is not present")
+	if _G == nil then
+		error("Global environment '_G' is not present", 3)
+	end
 	
 	-- We do not use ipairs() as we may be checking for its existence!
 	local names = {...}
@@ -111,26 +120,28 @@ function assertModule.globalTypeIs(expectation, ...)
 		local name = names[index]
 		assertModule.parameterTypeIsString(name)
 		
-		local value = _G[name]
+		local global = _G[name]
 		local qualifiedName = "The global '" .. name .. "'"
-		assert(value ~= nil, qualifiedName .. " is not present in the Lua environment")
-		assert(type(value) == expectation, qualifiedName .. " is not a " .. expectation)	
+		withLevel(global ~= nil, qualifiedName .. " is not present in the Lua environment", 4)
+		withLevel(type(global) == expectation, qualifiedName .. " is not a " .. expectation, 4)
+		
+		index = index + 1
 	end
 end
 
 function assertModule.globalTypeIsTable(...)
-	assertModule.globalTypeIs('table', ...)
+	globalTypeIs('table', ...)
 end
 
 function assertModule.globalTypeIsFunction(...)
-	assertModule.globalTypeIs('function', ...)
+	globalTypeIs('function', ...)
 end
 
 function assertModule.globalTypeIsString(...)
-	assertModule.globalTypeIs('string', ...)
+	globalTypeIs('string', ...)
 end
 
-function assertModule.globalTableHasChieldFieldOfType(expectation, name, ...)
+local function globalTableHasChieldFieldOfType(expectation, name, ...)
 	assertModule.parameterTypeIsString(expectation)
 	assertModule.parameterTypeIsString(name)
 	
@@ -142,25 +153,26 @@ function assertModule.globalTableHasChieldFieldOfType(expectation, name, ...)
 	for _, childFieldName in ipairs(childFieldNames) do
 		assertModule.parameterTypeIsString(childFieldName)
 		
+		local childField = package[childFieldName]
 		local qualifiedChildFieldName = "The global '" .. name .. '.' .. childFieldName .. "'"
-		assert(potentialFunction ~= nil, qualifiedChildFieldName .. " is not present in the Lua environment")
-		assert(type(potentialFunction) == expectation, qualifiedChildFieldName .. " is not a " .. expectation)
+		withLevel(childField ~= nil, qualifiedChildFieldName .. " is not present in the Lua environment", 4)
+		withLevel(type(childField) == expectation, qualifiedChildFieldName .. " is not a " .. expectation, 4)
 	end
 end
 
 function assertModule.globalTableHasChieldFieldOfTypeString(name, ...)
-	assertModule.globalTableHasChieldFieldOfType('string', name, ...)
+	globalTableHasChieldFieldOfType('string', name, ...)
 end
 
 function assertModule.globalTableHasChieldFieldOfTypeTable(name, ...)
-	assertModule.globalTableHasChieldFieldOfType('table', name, ...)
+	globalTableHasChieldFieldOfType('table', name, ...)
 end
 
 function assertModule.globalTableHasChieldFieldOfTypeFunction(name, ...)
-	assertModule.globalTableHasChieldFieldOfType('function', name, ...)
+	globalTableHasChieldFieldOfType('function', name, ...)
 end
-	
-assert.globalTypeIsFunction(
+
+assertModule.globalTypeIsFunction(
 	'assert',
 	'error',
 	'ipairs',
@@ -172,7 +184,7 @@ assert.globalTypeIsFunction(
 	'xpcall'
 )
 
-assert.globalTypeIsTable(
+assertModule.globalTypeIsTable(
 	'_G',
 	'package',
 	'string',
@@ -180,9 +192,9 @@ assert.globalTypeIsTable(
 )
 
 local assert = assertModule
+ourModule.assert = assert
 
-
-function module.hasPackageChildFieldOfType(expectation, name, ...)
+function ourModule.hasPackageChildFieldOfType(expectation, name, ...)
 	assert.parameterTypeIsString(expectation)
 	assert.parameterTypeIsString(name)
 	
@@ -212,16 +224,16 @@ function module.hasPackageChildFieldOfType(expectation, name, ...)
 	end
 end
 
-function module.hasPackageChildFieldOfTypeFunction(name, ...)
-	module.hasPackageChildFieldOfType('function', name, ...)
+function ourModule.hasPackageChildFieldOfTypeFunction(name, ...)
+	ourModule.hasPackageChildFieldOfType('function', name, ...)
 end
 
-function module.hasPackageChildFieldOfTypeString(name, ...)
-	module.hasPackageChildFieldOfType('string', name, ...)
+function ourModule.hasPackageChildFieldOfTypeString(name, ...)
+	ourModule.hasPackageChildFieldOfType('string', name, ...)
 end
 
-assert.globalTableHasChieldFieldOfTypeTable('table', 'insert')
-assert.globalTableHasChieldFieldOfTypeTable('string', 'find', 'sub')
+assert.globalTableHasChieldFieldOfTypeFunction('table', 'insert')
+assert.globalTableHasChieldFieldOfTypeFunction('string', 'find', 'sub')
 function string.split(value, separator)
 
 	local result = {}
@@ -243,7 +255,7 @@ function string.split(value, separator)
 	return result
 end
 
-assert.globalTableHasChieldFieldOfTypeTable('string', 'gmatch')
+assert.globalTableHasChieldFieldOfTypeFunction('string', 'gmatch')
 local function initialisePackageConfiguration(config)
 	
 	local packageConfigurationMapping = {
@@ -264,12 +276,12 @@ local function initialisePackageConfiguration(config)
 	
 	return configuration
 end
-assert.globalTableHasChieldFieldOfTypeTable('package', 'config')
-module.packageConfiguration = initialisePackageConfiguration(package.config)
-local packageConfiguration = module.packageConfiguration
+assert.globalTableHasChieldFieldOfTypeString('package', 'config')
+ourModule.packageConfiguration = initialisePackageConfiguration(package.config)
+local packageConfiguration = ourModule.packageConfiguration
 
-assert.globalTableHasChieldFieldOfTypeTable('string', 'match', 'gsub', 'sub')
-function module.dirname(path, folderSeparator)
+assert.globalTableHasChieldFieldOfTypeFunction('string', 'match', 'gsub', 'sub')
+function ourModule.dirname(path, folderSeparator)
 	assert.parameterTypeIsString(path)
 	assert.parameterTypeIsString(folderSeparator)
 	
@@ -287,14 +299,14 @@ function module.dirname(path, folderSeparator)
 		return './'
 	end
 end
-local dirname = module.dirname
+local dirname = ourModule.dirname
 
-assert.globalTableHasChieldFieldOfTypeTable('string', 'sub')
-function module.findArg0()
+assert.globalTableHasChieldFieldOfTypeFunction('string', 'sub')
+function ourModule.findArg0()
 	if type(arg) == 'table' and type(arg[0]) == 'string' then
 		return arg[0]
 	else
-		if module.hasPackageChildFieldOfTypeFunction('debug', 'getinfo') then
+		if ourModule.hasPackageChildFieldOfTypeFunction('debug', 'getinfo') then
 			-- May not be a path, could be compiled C code, etc
 			local withLeadingAt = debug.getinfo(initialisePackageConfiguration, 'S').source
 			return withLeadingAt:sub(2)
@@ -303,11 +315,11 @@ function module.findArg0()
 		end
 	end
 end
-local findArg0 = module.findArg0
+local findArg0 = ourModule.findArg0
 
-assert.globalTableHasChieldFieldOfTypeTable('table', 'concat')
-function module.concatenateToPath(parentPath, ...)
-	assert.parameterTypeIsString(arentPath)
+assert.globalTableHasChieldFieldOfTypeFunction('table', 'concat')
+function ourModule.concatenateToPath(parentPath, ...)
+	assert.parameterTypeIsString(parentPath)
 	
 	local subFolders = {...}
 	local folderSeparator = packageConfiguration.folderSeparator
@@ -320,7 +332,7 @@ function module.concatenateToPath(parentPath, ...)
 	local relativeSubFoldersPath = table.concat(subFolders, folderSeparator)
 	return parentPath .. folderSeparator .. relativeSubFoldersPath
 end
-local concatenateToPath = module.concatenateToPath
+local concatenateToPath = ourModule.concatenateToPath
 
 -- Ideally, we need to use realpath to resolve symlinks
 local function findOurFolderPath()
@@ -334,7 +346,7 @@ local function determineLuaLibraryFileExtension(folderSeparator)
 	local dylib = 'dylib'
 	
 	-- Running under LuaJIT makes life so much easier
-	if module.hasPackageChildFieldOfTypeString('jit', 'os') then
+	if ourModule.hasPackageChildFieldOfTypeString('jit', 'os') then
 		
 		local knownOperatingSystemsMapping = setmetatable({
 			Windows = dll,
@@ -357,9 +369,9 @@ local function determineLuaLibraryFileExtension(folderSeparator)
 	return so
 end
 
-assert.globalTableHasChieldFieldOfTypeTable('string', 'gmatch')
-assert.globalTableHasChieldFieldOfTypeTable('table', 'insert')
-function module.parentModuleNameFromModuleName(moduleName)
+assert.globalTableHasChieldFieldOfTypeFunction('string', 'gmatch')
+assert.globalTableHasChieldFieldOfTypeFunction('table', 'insert')
+function ourModule.parentModuleNameFromModuleName(moduleName)
 	local moduleElementNames = {}
 	for moduleElementName in moduleName:gmatch('[^%.]+') do
 		table.insert(moduleElementNames, moduleElementName)
@@ -378,7 +390,7 @@ function module.parentModuleNameFromModuleName(moduleName)
 	
 	return parentModuleName, moduleElementNames[size]
 end
-local parentModuleNameFromModuleName = module.parentModuleNameFromModuleName
+local parentModuleNameFromModuleName = ourModule.parentModuleNameFromModuleName
 
 local function requireParentModuleFirst(ourParentModuleName)
 	if ourParentModuleName == '' then
@@ -389,7 +401,7 @@ local function requireParentModuleFirst(ourParentModuleName)
 	end
 end
 
-assert.globalTableHasChieldFieldOfTypeTable('table', 'insert')
+assert.globalTableHasChieldFieldOfTypeFunction('table', 'insert')
 local searchPathGenerators = {
 	function(moduleName)
 		return packageConfiguration.substitutionPoint
@@ -405,7 +417,7 @@ local searchPathGenerators = {
 	end
 }
 
-assert.globalTableHasChieldFieldOfTypeTable('table', 'insert', 'concat')
+assert.globalTableHasChieldFieldOfTypeFunction('table', 'insert', 'concat')
 local function initialiseSearchPaths(moduleNameLocal, searchPathGenerators)
 
 	local folderSeparator = packageConfiguration.folderSeparator
@@ -418,14 +430,14 @@ local function initialiseSearchPaths(moduleNameLocal, searchPathGenerators)
 	
 	for key, fileExtension in pairs(mappings) do
 		local paths = {}
-		for _, searchPathGenerator in moduleNameLocal, searchPathGenerators do
-			table.insert(paths, concatenateToPath(modulesRootPath, searchPathGenerator(moduleNameLocal) .. '.' .. fileExtension)
+		for _, searchPathGenerator in ipairs(searchPathGenerators) do
+			table.insert(paths, concatenateToPath(modulesRootPath, searchPathGenerator(moduleNameLocal)) .. '.' .. fileExtension)
 		end
 		package[key] = table.concat(paths, pathSeparator)
 	end
 end
 
-assert.globalTableHasChieldFieldOfTypeTable('string', 'gsub')
+assert.globalTableHasChieldFieldOfTypeFunction('string', 'gsub')
 local function usefulRequire(moduleNameLocal, loaded, searchers, folderSeparator)
 	
 	local alreadyLoadedOrLoadingResult = loaded[moduleNameLocal]
@@ -487,7 +499,8 @@ local function usefulRequire(moduleNameLocal, loaded, searchers, folderSeparator
 	error(string.format("Could not load module '%s' ", moduleNameLocal))
 end
 
-assert.globalTableHasChieldFieldOfTypeTable('string', 'len')
+assert.globalTableHasChieldFieldOfTypeFunction('string', 'len')
+assert.globalTableHasChieldFieldOfTypeTable('package', 'loaded')
 function require(modname)
 	assert.parameterTypeIsString(modname)
 	
@@ -500,19 +513,21 @@ function require(modname)
 	if searchers == nil then
 		searchers = package.loaders
 	end
+	if searchers == nil then
+		error("Please ensure 'package.searchers' or 'package.loaders' exists")
+	end
 	return usefulRequire(modname, package.loaded, searchers, packageConfiguration.folderSeparator)
 end
-
 
 -- Support being require'd ourselves
 if moduleName == '' then
 	
 	modulesRootPath = concatenateToPath(findOurFolderPath(), '..')
 	
-	package.loaded[ourModuleName] = module
+	package.loaded[ourModuleName] = ourModule
 	local halimedeTrace = require(ourModuleName .. '.trace')
 	local halimedeRequireChild = require(ourModuleName .. '.requireChild')
 	local halimedeRequireSibling = require(ourModuleName .. '.requireSibling')
 else
-	return module
+	return ourModule
 end
