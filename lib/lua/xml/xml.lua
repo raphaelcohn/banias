@@ -5,6 +5,7 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 
 
 local tabelize = require('halimede.tabelize').tabelize
+local assert = require('halimede.assert')
 
 local alwaysEscapedCharacters = {}
 alwaysEscapedCharacters['<'] = '&lt;'
@@ -18,6 +19,8 @@ alwaysEscapedCharacters = setmetatable(alwaysEscapedCharacters, {
 )
 
 function module.escapeRawText(rawText)
+	assert.parameterIsString(rawText)
+	
 	return rawText:gsub('[<>&]', function(matchedCharacter)
 		return alwaysEscapedCharacters[matchedCharacter]
 	end)
@@ -25,6 +28,7 @@ end
 local escapeRawText = module.escapeRawText
 
 function module.attributes(attributesTable)
+	assert.parameterIsTable(attributesTable)
 	
 	local attributesArray = tabelize()
 
@@ -83,26 +87,38 @@ end
 local attributes = module.attributes
 
 function module.xmlElementNameWithAttributes(elementName, attributesTable)
+	assert.parameterIsString(elementName)
+	assert.parameterIsTable(attributesTable)
+	
 	return elementName .. attributes(attributesTable)
 end
 local xmlElementNameWithAttributes = module.xmlElementNameWithAttributes
 
 function module.xmlElementOpenTag(elementNameOrElementNameWithAttributes)
+	assert.parameterIsString(elementNameOrElementNameWithAttributes)
+	
 	return '<' .. elementNameOrElementNameWithAttributes .. '>'
 end
 local xmlElementOpenTag = module.xmlElementOpenTag
 
 function module.xmlElementCloseTag(elementNameOrElementNameWithAttributes)
+	assert.parameterIsString(elementNameOrElementNameWithAttributes)
+	
 	return '</' .. elementNameOrElementNameWithAttributes .. '>'
 end
 local xmlElementCloseTag = module.xmlElementCloseTag
 
 function module.xmlElementEmptyTag(elementNameOrElementNameWithAttributes)
+	assert.parameterIsString(elementNameOrElementNameWithAttributes)
+	
 	return '<' .. elementNameOrElementNameWithAttributes .. '/>'
 end
 local xmlElementEmptyTag = module.xmlElementEmptyTag
 
 function module.potentiallyEmptyXml(elementName, phrasingContent)
+	assert.parameterIsString(elementName)
+	assert.parameterIsString(phrasingContent)
+	
 	if phrasingContent == '' then
 		return module.xmlElementEmptyTag(elementName)
 	end
@@ -111,6 +127,10 @@ end
 local potentiallyEmptyXml = module.potentiallyEmptyXml
 
 function module.potentiallyEmptyXmlWithAttributes(elementName, phrasingContent, attributesTable)
+	assert.parameterIsString(elementName)
+	assert.parameterIsString(phrasingContent)
+	assert.parameterIsTable(attributesTable)
+	
 	element = xmlElementNameWithAttributes(elementName, attributesTable)
 	if phrasingContent == '' then
 		return xmlElementEmptyTag(element)
