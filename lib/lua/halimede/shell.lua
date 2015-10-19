@@ -8,6 +8,8 @@ local assert = requireSibling('assert')
 local tabelize = requireSibling('tabelize').tabelize
 local exception = requireSibling('exception')
 
+assert.globalTableHasChieldFieldOfTypeFunction('string', 'gsub')
+assert.globalTableHasChieldFieldOfTypeFunction('io', 'popen')
 function module.shell(...)
 	
 	local arguments = {...}
@@ -20,7 +22,7 @@ function module.shell(...)
 	end
 	
 	local command = commandBuffer:concat(' ')
-	local fileHandle = io.popen(command, 'r')
+	local fileHandle = io.popen(command, 'rb')
 	if fileHandle == nil then
 		exception.throw("Could not open shell for command '%s'", command)
 	end

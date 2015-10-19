@@ -9,6 +9,10 @@ local assert = requireSibling('assert')
 
 assert.globalTypeIsTable('table')
 
+-- maxn is dead 5.2/5.3
+-- we also gain pack, move and unpack in 5.3
+assert.globalTableHasChieldFieldOfTypeFunction('table', 'concat', 'insert', 'remove', 'sort')
+
 -- Adds the table.concat, table.insert, etc methods to optionalValueToTabelize, or returns an empty table with them added
 function module.tabelize(optionalValueToTabelize)
 	

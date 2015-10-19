@@ -13,30 +13,32 @@ local writeXmlElementEmptyTag = xmlwriter.writeXmlElementEmptyTag
 local writeXmlElement = xmlwriter.writeXmlElement
 
 local assert = require('halimede.assert')
+local shell = require('halimede.shell').shell
+local tabelize = require('halimede.shell').tabelize
+
+local halimedeIo = require('halimede.io')
 
 -- Runs dot then base64 on 'rawCodeString' to produce a base64-encoded png in a data: URL
--- Added to retain compatibility with JGM
+-- Added to retain compatibility with JGM's Pandoc
 parentModule.register(leafModuleName, function(rawCodeString, attributesTable)
 	
 	assert.parameterIsString(rawCodeString)
 	assert.parameterIsTable(attributesTable)
 	
-	-- TODO: replace os.tmpname with io.tmpfile - http://www.lua.org/manual/5.2/manual.html#6.8 - but no way to get file name...
-	local function pipe(programCommandStringWithEscapedData, inputBytes)
-		local temporaryFileToWrite = os.tmpname()
-		local tmph = io.open(temporaryFileToWrite, 'w')
-		tmph:write(inputBytes)
-		tmph:close()
-
-		local outh = io.popen(programCommandStringWithEscapedData .. ' ' .. temporaryFileToWrite, 'r')
-		local result = outh:read('*all')
-		outh:close()
-
-		os.remove(temporaryFileToWrite)
-		return result
+	local function pipe(outputBytes, ...)
+		
+		local commandlineArguments = tabelize({...})
+		
+		halimedeIo.writeToTemporaryFileAllContentsInTextModeAndUse(outputBytes, function(temporaryFileContainingOutputBytes)
+			
+			commandLineArguments:insert(temporaryFileContainingOutputBytes)
+			return shell(unpack(commandlineArguments))
+		end)
 	end
 	
-    local base64EncondedPortalNetworkGraphicsImage = pipe('base64', pipe('dot -Tpng', rawCodeString))
+	-- TODO: Syntax for defining programs needed on the PATH
+	local dotted = pipe(rawCodeString, 'dot', '-Tpng')
+    local base64EncondedPortalNetworkGraphicsImage = pipe(dotted, 'base64')
 	
 	return writeXmlElement('img', '', {src = 'data:image/png;base64,' .. base64EncondedPortalNetworkGraphicsImage})
 end)

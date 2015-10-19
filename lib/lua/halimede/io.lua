@@ -8,19 +8,69 @@ local assert = require('halimede.assert')
 local exception = require('halimede.exception')
 
 
--- Defensive checks; fail-fast on initialisation
-assert.globalTypeIsTable('io')
-
 assert.globalTableHasChieldFieldOfTypeFunction('io', 'open')
 function module.openTextModeForReading(filePath, fileDescription)
-	
 	assert.parameterTypeIsString(filePath)
 	assert.parameterTypeIsString(fileDescription)
 	
 	local fileHandle, errorMessage = io.open(filePath, 'r')
 	if fileHandle == nil then
-		exception.throw("Could not open %s '%s' because of error '%s'", fileDescription, filePath, errorMessage)
+		exception.throw("Could not open %s '%s' for text-mode reading because of error '%s'", fileDescription, filePath, errorMessage)
 	end
 	return fileHandle
 	
+end
+local openTextModeForReading = module.openTextModeForReading
+
+assert.globalTableHasChieldFieldOfTypeFunction('io', 'open')
+function module.openTextModeForWriting(filePath, fileDescription)
+	assert.parameterTypeIsString(filePath)
+	assert.parameterTypeIsString(fileDescription)
+	
+	local fileHandle, errorMessage = io.open(filePath, 'w')
+	if fileHandle == nil then
+		exception.throw("Could not open %s '%s' for text-mode writing because of error '%s'", fileDescription, filePath, errorMessage)
+	end
+	return fileHandle
+	
+end
+local openTextModeForWriting = module.openTextModeForWriting
+
+function module.writeToFileAllContentsInTextMode(filePath, fileDescription, contents)
+	assert.parameterTypeIsString(filePath)
+	assert.parameterTypeIsString(fileDescription)
+	assert.parameterTypeIsString(contents)
+	
+	local fileHandle = openTextModeForWriting(filePath, fileDescription)
+	-- No errors from Lua when write or close fail...
+	fileHandle:setvbuf('full', 4096)
+	fileHandle:write(contents)
+	fileHandle:close()
+end
+local writeToFileAllContentsInTextMode = module.writeToFileAllContentsInTextMode
+
+-- TODO: replace os.tmpname with io.tmpfile - http://www.lua.org/manual/5.2/manual.html#6.8 - but no way to get file name...
+assert.globalTableHasChieldFieldOfTypeFunction('os', 'tmpname')
+function module.writeToTemporaryFileAllContentsInTextMode(contents)
+	assert.parameterTypeIsString(contents)
+
+	local temporaryFileToWrite = os.tmpname()
+	writeToFileAllContentsInTextMode(temporaryFileToWrite, 'temporary file', contents)
+	return temporaryFileToWrite
+end
+local writeToTemporaryFileAllContentsInTextMode = module.writeToTemporaryFileAllContentsInTextMode
+
+assert.globalTableHasChieldFieldOfTypeFunction('os', 'remove')
+function module.writeToTemporaryFileAllContentsInTextModeAndUse(contents, user)
+	assert.parameterTypeIsString(contents)
+	assert.parameterTypeIsFunction(user)
+
+	local temporaryFileToWrite = writeToTemporaryFileAllContentsInTextMode(contents)
+	local ok, result = pcall(user, temporaryFileToWrite)
+	os.remove(temporaryFileToWrite)
+	if not ok then
+		error(result)
+	end
+	
+	return result
 end
