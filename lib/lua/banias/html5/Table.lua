@@ -7,12 +7,12 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 local xmlwriter = require('xmlwriter')
 local escapeRawText = xmlwriter.escapeRawText
 local attributes = xmlwriter.attributes
-local xmlElementNameWithAttributes = xmlwriter.xmlElementNameWithAttributes
-local xmlElementOpenTag = xmlwriter.xmlElementOpenTag
-local xmlElementCloseTag = xmlwriter.xmlElementCloseTag
-local xmlElementEmptyTag = xmlwriter.xmlElementEmptyTag
-local potentiallyEmptyXml = xmlwriter.potentiallyEmptyXml
-local potentiallyEmptyXmlWithAttributes = xmlwriter.potentiallyEmptyXmlWithAttributes
+local writeXmlElementNameWithAttributes = xmlwriter.writeXmlElementNameWithAttributes
+local writeXmlElementOpenTag = xmlwriter.writeXmlElementOpenTag
+local writeXmlElementCloseTag = xmlwriter.writeXmlElementCloseTag
+local writeXmlElementEmptyTag = xmlwriter.writeXmlElementEmptyTag
+local writePotentiallyEmptyXml = xmlwriter.writePotentiallyEmptyXml
+local writePotentiallyEmptyXmlWithAttributes = xmlwriter.writePotentiallyEmptyXmlWithAttributes
 
 local assert = require('halimede.assert')
 
@@ -46,17 +46,17 @@ function Table(caption, pandocAlignments, widths, headers, rows)
 		buffer:insert(content)
 	end
 	
-	add(xmlElementOpenTag('table'))
+	add(writeXmlElementOpenTag('table'))
   
 	if caption ~= '' then
-		add(potentiallyEmptyXml('caption', caption))
+		add(writePotentiallyEmptyXml('caption', caption))
 	end
 	
 	if widths and widths[1] ~= 0 then
     	for _, width in pairs(widths) do
 			assert.parameterIsNumber(width)
 			local percentageWidth = string.format('%d%%', width * 100)
-			add(potentiallyEmptyXmlWithAttributes('col', '', {width = percentageWidth}))
+			add(writePotentiallyEmptyXmlWithAttributes('col', '', {width = percentageWidth}))
 		end
 	end
 	
@@ -65,31 +65,31 @@ function Table(caption, pandocAlignments, widths, headers, rows)
 	for columnIndex, headerCellPhrasedContent in pairs(headers) do
 		assert.parameterIsString(headerCellPhrasedContent)
 		local align = pandocToHtmlAlignmentLookUp[pandocAlignments[columnIndex]]
-		headerRow:insert(potentiallyEmptyXmlWithAttributes('th', headerCellPhrasedContent, {class = 'align ' .. align}))
+		headerRow:insert(writePotentiallyEmptyXmlWithAttributes('th', headerCellPhrasedContent, {class = 'align ' .. align}))
 		isHeaderEmpty = isHeaderEmpty and headerCellPhrasedContent == ''
 	end
 	if not isHeaderEmpty then
-		add(xmlElementOpenTag(xmlElementNameWithAttributes('tr', {class = 'header'})))
+		add(writeXmlElementOpenTag(writeXmlElementNameWithAttributes('tr', {class = 'header'})))
 		for _, thCell in pairs(headerRow) do
 			add(thCell)
 		end
-		add(xmlElementCloseTag('tr'))
+		add(writeXmlElementCloseTag('tr'))
 	end
 	
 	local class = 'even'
 	for _, row in pairs(rows) do
 		assert.parameterIsTable(row)
 		class = (class == 'even' and 'odd') or 'even'
-		add(xmlElementOpenTag(xmlElementNameWithAttributes('tr', {class = class})))
+		add(writeXmlElementOpenTag(writeXmlElementNameWithAttributes('tr', {class = class})))
 		for columnIndex, rowCellPhrasedContent in pairs(row) do
 			assert.parameterIsString(rowCellPhrasedContent)
 			local align = pandocToHtmlAlignmentLookUp[pandocAlignments[columnIndex]]
-			add(potentiallyEmptyXmlWithAttributes('td', rowCellPhrasedContent, {class = 'align ' .. align}))
+			add(writePotentiallyEmptyXmlWithAttributes('td', rowCellPhrasedContent, {class = 'align ' .. align}))
 		end
-		add(xmlElementCloseTag('tr'))
+		add(writeXmlElementCloseTag('tr'))
 	end
 	
-	add(xmlElementCloseTag('table'))
+	add(writeXmlElementCloseTag('table'))
 	
 	return buffer:concat()
 end

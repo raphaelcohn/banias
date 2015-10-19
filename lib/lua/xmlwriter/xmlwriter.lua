@@ -86,55 +86,55 @@ function module.attributes(attributesTable)
 end
 local attributes = module.attributes
 
-function module.xmlElementNameWithAttributes(elementName, attributesTable)
+function module.writeXmlElementNameWithAttributes(elementName, attributesTable)
 	assert.parameterIsString(elementName)
 	assert.parameterIsTable(attributesTable)
 	
 	return elementName .. attributes(attributesTable)
 end
-local xmlElementNameWithAttributes = module.xmlElementNameWithAttributes
+local writeXmlElementNameWithAttributes = module.writeXmlElementNameWithAttributes
 
-function module.xmlElementOpenTag(elementNameOrElementNameWithAttributes)
+function module.writeXmlElementOpenTag(elementNameOrElementNameWithAttributes)
 	assert.parameterIsString(elementNameOrElementNameWithAttributes)
 	
 	return '<' .. elementNameOrElementNameWithAttributes .. '>'
 end
-local xmlElementOpenTag = module.xmlElementOpenTag
+local writeXmlElementOpenTag = module.writeXmlElementOpenTag
 
-function module.xmlElementCloseTag(elementNameOrElementNameWithAttributes)
+function module.writeXmlElementCloseTag(elementNameOrElementNameWithAttributes)
 	assert.parameterIsString(elementNameOrElementNameWithAttributes)
 	
 	return '</' .. elementNameOrElementNameWithAttributes .. '>'
 end
-local xmlElementCloseTag = module.xmlElementCloseTag
+local writeXmlElementCloseTag = module.writeXmlElementCloseTag
 
-function module.xmlElementEmptyTag(elementNameOrElementNameWithAttributes)
+function module.writeXmlElementEmptyTag(elementNameOrElementNameWithAttributes)
 	assert.parameterIsString(elementNameOrElementNameWithAttributes)
 	
 	return '<' .. elementNameOrElementNameWithAttributes .. '/>'
 end
-local xmlElementEmptyTag = module.xmlElementEmptyTag
+local writeXmlElementEmptyTag = module.writeXmlElementEmptyTag
 
-function module.potentiallyEmptyXml(elementName, phrasingContent)
+function module.writePotentiallyEmptyXml(elementName, phrasingContent)
 	assert.parameterIsString(elementName)
 	assert.parameterIsString(phrasingContent)
 	
 	if phrasingContent == '' then
-		return module.xmlElementEmptyTag(elementName)
+		return module.writeXmlElementEmptyTag(elementName)
 	end
-	return xmlElementOpenTag(elementName) .. phrasingContent .. xmlElementCloseTag(elementName)
+	return writeXmlElementOpenTag(elementName) .. phrasingContent .. writeXmlElementCloseTag(elementName)
 end
-local potentiallyEmptyXml = module.potentiallyEmptyXml
+local writePotentiallyEmptyXml = module.writePotentiallyEmptyXml
 
-function module.potentiallyEmptyXmlWithAttributes(elementName, phrasingContent, attributesTable)
+function module.writePotentiallyEmptyXmlWithAttributes(elementName, phrasingContent, attributesTable)
 	assert.parameterIsString(elementName)
 	assert.parameterIsString(phrasingContent)
 	assert.parameterIsTable(attributesTable)
 	
-	element = xmlElementNameWithAttributes(elementName, attributesTable)
+	element = writeXmlElementNameWithAttributes(elementName, attributesTable)
 	if phrasingContent == '' then
-		return xmlElementEmptyTag(element)
+		return writeXmlElementEmptyTag(element)
 	end
-	return xmlElementOpenTag(element) .. phrasingContent .. xmlElementCloseTag(elementName)
+	return writeXmlElementOpenTag(element) .. phrasingContent .. writeXmlElementCloseTag(elementName)
 end
-local potentiallyEmptyXmlWithAttributes = module.potentiallyEmptyXmlWithAttributes
+local writePotentiallyEmptyXmlWithAttributes = module.writePotentiallyEmptyXmlWithAttributes

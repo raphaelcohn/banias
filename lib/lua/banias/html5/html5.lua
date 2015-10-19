@@ -9,12 +9,12 @@ local tabelize = require('halimede.tabelize').tabelize
 local xmlwriter = require('xmlwriter')
 local escapeRawText = xmlwriter.escapeRawText
 local attributes = xmlwriter.attributes
-local xmlElementNameWithAttributes = xmlwriter.xmlElementNameWithAttributes
-local xmlElementOpenTag = xmlwriter.xmlElementOpenTag
-local xmlElementCloseTag = xmlwriter.xmlElementCloseTag
-local xmlElementEmptyTag = xmlwriter.xmlElementEmptyTag
-local potentiallyEmptyXml = xmlwriter.potentiallyEmptyXml
-local potentiallyEmptyXmlWithAttributes = xmlwriter.potentiallyEmptyXmlWithAttributes
+local writeXmlElementNameWithAttributes = xmlwriter.writeXmlElementNameWithAttributes
+local writeXmlElementOpenTag = xmlwriter.writeXmlElementOpenTag
+local writeXmlElementCloseTag = xmlwriter.writeXmlElementCloseTag
+local writeXmlElementEmptyTag = xmlwriter.writeXmlElementEmptyTag
+local writePotentiallyEmptyXml = xmlwriter.writePotentiallyEmptyXml
+local writePotentiallyEmptyXmlWithAttributes = xmlwriter.writePotentiallyEmptyXmlWithAttributes
 
 local assert = require('halimede.assert')
 
@@ -107,11 +107,11 @@ function Doc(body, metadata, variables)
 	
 	-- TODO: Don't we always want to output this, as it may occupy space on the page (eg styled as a block)?
 	if #footnotes > 0 then
-		add(xmlElementOpenTag(xmlElementNameWithAttributes('ol', {class = 'footnotes'})))
+		add(writeXmlElementOpenTag(writeXmlElementNameWithAttributes('ol', {class = 'footnotes'})))
 		for _, footnote in pairs(footnotes) do
 			add(footnote)
 		end
-		add(xmlElementCloseTag('ol'))
+		add(writeXmlElementCloseTag('ol'))
 	end
 	
 	return buffer:concat()
@@ -127,7 +127,7 @@ requireChild('Image')
 function Para(phrasingContent)
 	assert.parameterIsString(phrasingContent)
 	
-	return potentiallyEmptyXml('p', phrasingContent)
+	return writePotentiallyEmptyXml('p', phrasingContent)
 end
 
 function RawBlock(format, content)
@@ -137,12 +137,12 @@ function RawBlock(format, content)
 	if format == 'html' then
 		return content
 	else
-		return potentiallyEmptyXml('pre', escapeRawText(content))
+		return writePotentiallyEmptyXml('pre', escapeRawText(content))
 	end
 end
 
 function HorizontalRule()
-	return xmlElementEmptyTag('hr')
+	return writeXmlElementEmptyTag('hr')
 end
 
 function Header(oneBasedLevelInteger, phrasingContent, attributesTable)
@@ -150,7 +150,7 @@ function Header(oneBasedLevelInteger, phrasingContent, attributesTable)
 	assert.parameterIsString(phrasingContent)
 	assert.parameterIsTable(attributesTable)
 	
-	return potentiallyEmptyXmlWithAttributes('h' .. oneBasedLevelInteger, phrasingContent, attributesTable)
+	return writePotentiallyEmptyXmlWithAttributes('h' .. oneBasedLevelInteger, phrasingContent, attributesTable)
 end
 
 local codeblocks = requireChild('codeblocks')
@@ -171,7 +171,7 @@ end
 function BlockQuote(phrasingContent)
 	assert.parameterIsString(phrasingContent)
 	
-	return potentiallyEmptyXml('blockquote', phrasingContent)
+	return writePotentiallyEmptyXml('blockquote', phrasingContent)
 end
 
 requireChild('Table')
@@ -196,14 +196,14 @@ function DefinitionList(items)
 			assert.parameterIsString(definitionTerm)
 			assert.parameterIsTable(definitions)
 			
-			add(potentiallyEmptyXml('dt', definitionTerm))
+			add(writePotentiallyEmptyXml('dt', definitionTerm))
 			
 			for _, definition in ipairs(definitions) do
-				add(potentiallyEmptyXml('dd', definition))
+				add(writePotentiallyEmptyXml('dd', definition))
 			end
 		end
 	end
-	return potentiallyEmptyXml('dl', buffer:concat(), {})
+	return writePotentiallyEmptyXml('dl', buffer:concat(), {})
 end
 
 -- TODO: No use of <section>? Why?
@@ -211,7 +211,7 @@ function Div(content, attributesTable)
 	assert.parameterIsString(content)
 	assert.parameterIsTable(attributesTable)
 	
-	return potentiallyEmptyXmlWithAttributes('div', content, attributesTable)
+	return writePotentiallyEmptyXmlWithAttributes('div', content, attributesTable)
 end
 
 function Blocksep()
@@ -229,33 +229,33 @@ end
 
 function Emph(phrasingContent)
 	assert.parameterIsString(phrasingContent)
-	return potentiallyEmptyXml('em', phrasingContent)
+	return writePotentiallyEmptyXml('em', phrasingContent)
 end
 
 function Strong(phrasingContent)
 	assert.parameterIsString(phrasingContent)
-	return potentiallyEmptyXml('strong', phrasingContent)
+	return writePotentiallyEmptyXml('strong', phrasingContent)
 end
 
 function Strikeout(phrasingContent)
 	assert.parameterIsString(phrasingContent)
-	return potentiallyEmptyXml('del', phrasingContent)
+	return writePotentiallyEmptyXml('del', phrasingContent)
 end
 
 function Subscript(phrasingContent)
 	assert.parameterIsString(phrasingContent)
-	return potentiallyEmptyXml('sub', phrasingContent)
+	return writePotentiallyEmptyXml('sub', phrasingContent)
 end
 
 function Superscript(phrasingContent)
 	assert.parameterIsString(phrasingContent)
-	return potentiallyEmptyXml('sup', phrasingContent)
+	return writePotentiallyEmptyXml('sup', phrasingContent)
 end
 
 function SmallCaps(phrasingContent)
 	assert.parameterIsString(phrasingContent)
 	-- was style = 'font-variant: small-caps;'  but this is longer than class="smallcaps"
-	return potentiallyEmptyXmlWithAttributes('span', phrasingContent, {class = 'smallcaps'})
+	return writePotentiallyEmptyXmlWithAttributes('span', phrasingContent, {class = 'smallcaps'})
 end
 
 local singleOpeningQuoteUtf8 = '\226\128\152' -- LEFT SINGLE QUOTATION MARK, Unicode: U+2018, UTF-8: E2 80 98
@@ -289,13 +289,13 @@ function Cite(phrasingContent, citations)
 	}
 	attributesTable['data-citation-identifiers'] = identifiers:concat(',')
 	
-	return potentiallyEmptyXmlWithAttributes('span', phrasingContent, attributesTable)
+	return writePotentiallyEmptyXmlWithAttributes('span', phrasingContent, attributesTable)
 end
 
 function Code(rawCodeString, attributesTable)
 	assert.parameterIsString(rawCodeString)
 	assert.parameterIsTable(attributesTable)
-	return potentiallyEmptyXmlWithAttributes('code', escapeRawText(rawCodeString), attributesTable)
+	return writePotentiallyEmptyXmlWithAttributes('code', escapeRawText(rawCodeString), attributesTable)
 end
 
 function DisplayMath(rawText)
@@ -315,12 +315,12 @@ function RawInline(format, content)
 	if format == 'html' then
 		return content
 	else
-		return potentiallyEmptyXml('code', escapeRawText(content))
+		return writePotentiallyEmptyXml('code', escapeRawText(content))
 	end
 end
 
 function LineBreak()
-	return xmlElementEmptyTag('br')
+	return writeXmlElementEmptyTag('br')
 end
 
 function Link(phrasingContent, url, title)
@@ -328,7 +328,7 @@ function Link(phrasingContent, url, title)
 	assert.parameterIsString(url)
 	assert.parameterIsString(title)
 	
-	return potentiallyEmptyXmlWithAttributes('a', phrasingContent, {url = url, title = title})
+	return writePotentiallyEmptyXmlWithAttributes('a', phrasingContent, {url = url, title = title})
 end
 
 requireChild('Image')
@@ -347,19 +347,19 @@ function Note(phrasingContent)
 	local footnoteReferenceIdentifier = footnoteReferenceIdentifierPrefix .. oneBasedFootnoteIndex
 	local footnoteReferenceIdentifierHref = '#' .. footnoteReferenceIdentifierPrefix .. oneBasedFootnoteIndex
 	
-	local xxx = potentiallyEmptyXmlWithAttributes('a', unicodeLeftwardArrowWithHookInUtf8, {href = footnoteReferenceIdentifierHref})
+	local xxx = writePotentiallyEmptyXmlWithAttributes('a', unicodeLeftwardArrowWithHookInUtf8, {href = footnoteReferenceIdentifierHref})
 	phrasingContentWithBackReferenceRightBeforeTheFinalClosingTag = phrasingContent:gsub('(.*)</', '%1 ' .. xxx .. '</')
 	
-	footnotes:insert(potentiallyEmptyXmlWithAttributes('li', phrasingContentWithBackReferenceRightBeforeTheFinalClosingTag, {id = footnoteIdentifier}))
+	footnotes:insert(writePotentiallyEmptyXmlWithAttributes('li', phrasingContentWithBackReferenceRightBeforeTheFinalClosingTag, {id = footnoteIdentifier}))
 	
-	return potentiallyEmptyXmlWithAttributes('a', potentiallyEmptyXml('sup', oneBasedFootnoteIndex), {id = footnoteReferenceIdentifier, href = footnoteIdentifierHref})
+	return writePotentiallyEmptyXmlWithAttributes('a', writePotentiallyEmptyXml('sup', oneBasedFootnoteIndex), {id = footnoteReferenceIdentifier, href = footnoteIdentifierHref})
 end
 
 function Span(phrasingContent, attributesTable)
 	assert.parameterIsString(phrasingContent)
 	assert.parameterIsTable(attributesTable)
 	
-	return potentiallyEmptyXmlWithAttributes('span', phrasingContent, attributesTable)
+	return writePotentiallyEmptyXmlWithAttributes('span', phrasingContent, attributesTable)
 end
 
 return module
