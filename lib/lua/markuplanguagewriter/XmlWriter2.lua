@@ -6,9 +6,9 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 
 local tabelize = require('halimede.tabelize').tabelize
 local assert = require('halimede.assert')
-local common = requireSibling('common')
+local AbstractWriter = requireSibling('AbstractWriter')
 
-module = common.Writer:new()
+module = AbstractWriter:new()
 function module:constructAttribute(attributesArray, attributeName, attributeValue)
 	
 	local quotationMark = '"'
@@ -52,18 +52,4 @@ function module:constructAttribute(attributesArray, attributeName, attributeValu
 	end
 	
 	attributesArray:insert(' ' .. attributeName .. '=' .. quotationMark .. escapedAttributeValue .. quotationMark)
-end
-
-local function constructHtml5Attribute(attributesArray, attributeName, attributeValue)
-	if attributeValue == '' then
-		return
-	end
-	
-	-- Omit quotemarks if value is 'safe'
-	if attributeValue:find('[ >="\']') == nil then
-		attributesArray:insert(' ' .. attributeName .. '=' ..attributeValue)
-		return
-	end
-	
-	return constructXmlAttribute(attributesArray, attributeName, attributeValue)
 end
