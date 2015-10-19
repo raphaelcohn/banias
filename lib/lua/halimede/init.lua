@@ -64,7 +64,15 @@ function assertModule.withLevel(booleanResult, message, level)
 	if booleanResult then
 		return
 	end
-	error(message, level)
+	
+	local errorMessage
+	if ourModule.hasPackageChildFieldOfTypeFunction('debug', 'traceback') then
+		errorMessage = debug.traceback(message, level)
+	else
+		errorMessage = message
+	end
+	
+	error(errorMessage, level)
 end
 local withLevel = assertModule.withLevel
 
@@ -78,31 +86,31 @@ function assertModule.parameterTypeIsNil(value)
 end
 
 function assertModule.parameterTypeIsNumber(value)
-	parameterTypeIs(value, 'number')
+	return parameterTypeIs(value, 'number')
 end
 
 function assertModule.parameterTypeIsString(value)
-	parameterTypeIs(value, 'string')
+	return parameterTypeIs(value, 'string')
 end
 
 function assertModule.parameterTypeIsFunction(value)
-	parameterTypeIs(value, 'boolean')
+	return parameterTypeIs(value, 'boolean')
 end
 
 function assertModule.parameterTypeIsTable(value)
-	parameterTypeIs(value, 'table')
+	return parameterTypeIs(value, 'table')
 end
 
 function assertModule.parameterTypeIsFunction(value)
-	parameterTypeIs(value, 'function')
+	return parameterTypeIs(value, 'function')
 end
 
 function assertModule.parameterTypeIsThread(value)
-	parameterTypeIs(value, 'thread')
+	return parameterTypeIs(value, 'thread')
 end
 
 function assertModule.parameterTypeIsUserdata(value)
-	parameterTypeIs(value, 'userdata')
+	return parameterTypeIs(value, 'userdata')
 end
 
 local function globalTypeIs(expectation, ...)
@@ -130,15 +138,15 @@ local function globalTypeIs(expectation, ...)
 end
 
 function assertModule.globalTypeIsTable(...)
-	globalTypeIs('table', ...)
+	return globalTypeIs('table', ...)
 end
 
 function assertModule.globalTypeIsFunction(...)
-	globalTypeIs('function', ...)
+	return globalTypeIs('function', ...)
 end
 
 function assertModule.globalTypeIsString(...)
-	globalTypeIs('string', ...)
+	return globalTypeIs('string', ...)
 end
 
 local function globalTableHasChieldFieldOfType(expectation, name, ...)
@@ -161,15 +169,15 @@ local function globalTableHasChieldFieldOfType(expectation, name, ...)
 end
 
 function assertModule.globalTableHasChieldFieldOfTypeString(name, ...)
-	globalTableHasChieldFieldOfType('string', name, ...)
+	return globalTableHasChieldFieldOfType('string', name, ...)
 end
 
 function assertModule.globalTableHasChieldFieldOfTypeTable(name, ...)
-	globalTableHasChieldFieldOfType('table', name, ...)
+	return globalTableHasChieldFieldOfType('table', name, ...)
 end
 
 function assertModule.globalTableHasChieldFieldOfTypeFunction(name, ...)
-	globalTableHasChieldFieldOfType('function', name, ...)
+	return globalTableHasChieldFieldOfType('function', name, ...)
 end
 
 assertModule.globalTypeIsFunction(
@@ -222,14 +230,16 @@ function ourModule.hasPackageChildFieldOfType(expectation, name, ...)
 			return false
 		end
 	end
+	
+	return true
 end
 
 function ourModule.hasPackageChildFieldOfTypeFunction(name, ...)
-	ourModule.hasPackageChildFieldOfType('function', name, ...)
+	return ourModule.hasPackageChildFieldOfType('function', name, ...)
 end
 
 function ourModule.hasPackageChildFieldOfTypeString(name, ...)
-	ourModule.hasPackageChildFieldOfType('string', name, ...)
+	return ourModule.hasPackageChildFieldOfType('string', name, ...)
 end
 
 assert.globalTableHasChieldFieldOfTypeFunction('table', 'insert')

@@ -361,7 +361,8 @@ function Note(phrasingContent)
 	
 	footnotes:insert(writeXmlElement('li', phrasingContentWithBackReferenceRightBeforeTheFinalClosingTag, {id = footnoteIdentifier}))
 	
-	return writeXmlElement('a', writeXmlElement('sup', oneBasedFootnoteIndex), {id = footnoteReferenceIdentifier, href = footnoteIdentifierHref})
+	local sup = writeXmlElement('sup', '' .. oneBasedFootnoteIndex)
+	return writeXmlElement('a', sup, {id = footnoteReferenceIdentifier, href = footnoteIdentifierHref})
 end
 
 function Span(phrasingContent, attributesTable)
