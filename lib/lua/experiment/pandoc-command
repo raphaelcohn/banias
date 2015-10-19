@@ -3,7 +3,7 @@
 cd "$(dirname "$0")" 1>/dev/null
 # Oddly, makes the alt text use smart quotes but not the title of an image...
 pandoc --smart --toc --to html5 -o html5.orig.html --template ../banias/html5/template.html html5.md
-export PANDOC_LUA_BANIAS_TRACE='false'
+export LUA_HALIMEDE_TRACE='false'
 path=..
 export LUA_PATH="$path/?.lua;$path/?/init.lua;$path/?/?.lua"
 export LUA_CPATH="$path/?.so;$path/?/init.so;$path/?/?.so"
