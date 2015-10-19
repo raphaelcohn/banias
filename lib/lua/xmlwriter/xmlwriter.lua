@@ -7,6 +7,7 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 local tabelize = require('halimede.tabelize').tabelize
 local assert = require('halimede.assert')
 
+
 local alwaysEscapedCharacters = {}
 alwaysEscapedCharacters['<'] = '&lt;'
 alwaysEscapedCharacters['>'] = '&gt;'
@@ -27,15 +28,7 @@ function module.writeText(rawText)
 end
 local writeText = module.writeText
 
-local function constructAttribute(attributesArray, attributeName, attributeValue)
-	if attributeValue == '' then
-		--io.stderr:write('Empty attribute ' .. attributeName .. '\n')
-	end
-	
-	-- TODO: Clean up empty attributes, default attributes, etc
-	if attributeValue == '' then
-		return
-	end
+local function constructXmlAttribute(attributesArray, attributeName, attributeValue)
 	
 	local quotationMark = '"'
 	local doubleQuotesPresent = false
@@ -80,6 +73,20 @@ local function constructAttribute(attributesArray, attributeName, attributeValue
 	attributesArray:insert(' ' .. attributeName .. '=' .. quotationMark .. escapedAttributeValue .. quotationMark)
 end
 
+local function constructHtml5Attribute(attributesArray, attributeName, attributeValue)
+	if attributeValue == '' then
+		return
+	end
+	
+	-- Omit quotemarks if value is 'safe'
+	if attributeValue:find('[ >="\']') == nil then
+		attributesArray:insert(' ' .. attributeName .. '=' ..attributeValue)
+		return
+	end
+	
+	return constructXmlAttribute(attributesArray, attributeName, attributeValue)
+end
+
 io.stderr:write('Optimise away empty global attributes like title, class and id; others check for boolean variants\n')
 local function writeAttributes(attributesTable)
 	
@@ -89,44 +96,44 @@ local function writeAttributes(attributesTable)
 		assert.parameterTypeIsString(attributeName)
 		assert.parameterTypeIsString(attributeValue)
 		
-		constructAttribute(attributesArray, attributeName, attributeValue)
+		constructHtml5Attribute(attributesArray, attributeName, attributeValue)
 	end
 	
-	-- Sorted to ensure stable, diff-able XML output
+	-- Sorted to ensure stable, diff-able output
 	attributesArray:sort()
 	return attributesArray:concat()
 end
 
-function module.writeXmlElementNameWithAttributes(elementName, attributesTable)
+function module.writeElementNameWithAttributes(elementName, attributesTable)
 	assert.parameterTypeIsString(elementName)
 	assert.parameterTypeIsTable(attributesTable)
 	
 	return elementName .. writeAttributes(attributesTable)
 end
-local writeXmlElementNameWithAttributes = module.writeXmlElementNameWithAttributes
+local writeElementNameWithAttributes = module.writeElementNameWithAttributes
 
-function module.writeXmlElementOpenTag(elementNameOrElementNameWithAttributes)
+function module.writeElementOpenTag(elementNameOrElementNameWithAttributes)
 	assert.parameterTypeIsString(elementNameOrElementNameWithAttributes)
 	
 	return '<' .. elementNameOrElementNameWithAttributes .. '>'
 end
-local writeXmlElementOpenTag = module.writeXmlElementOpenTag
+local writeElementOpenTag = module.writeElementOpenTag
 
-function module.writeXmlElementCloseTag(elementNameOrElementNameWithAttributes)
+function module.writeElementCloseTag(elementNameOrElementNameWithAttributes)
 	assert.parameterTypeIsString(elementNameOrElementNameWithAttributes)
 	
 	return '</' .. elementNameOrElementNameWithAttributes .. '>'
 end
-local writeXmlElementCloseTag = module.writeXmlElementCloseTag
+local writeElementCloseTag = module.writeElementCloseTag
 
-function module.writeXmlElementEmptyTag(elementNameOrElementNameWithAttributes)
+function module.writeElementEmptyTag(elementNameOrElementNameWithAttributes)
 	assert.parameterTypeIsString(elementNameOrElementNameWithAttributes)
 	
 	return '<' .. elementNameOrElementNameWithAttributes .. '/>'
 end
-local writeXmlElementEmptyTag = module.writeXmlElementEmptyTag
+local writeElementEmptyTag = module.writeElementEmptyTag
 
-function module.writeXmlElement(elementName, phrasingContent, optionalAttributesTable)
+function module.writeElement(elementName, phrasingContent, optionalAttributesTable)
 	assert.parameterTypeIsString(elementName)
 	assert.parameterTypeIsString(phrasingContent)
 	
@@ -137,10 +144,10 @@ function module.writeXmlElement(elementName, phrasingContent, optionalAttributes
 		attributesTable = optionalAttributesTable
 	end
 	
-	element = writeXmlElementNameWithAttributes(elementName, attributesTable)
+	element = writeElementNameWithAttributes(elementName, attributesTable)
 	if phrasingContent == '' then
-		return writeXmlElementEmptyTag(element)
+		return writeElementEmptyTag(element)
 	end
-	return writeXmlElementOpenTag(element) .. phrasingContent .. writeXmlElementCloseTag(elementName)
+	return writeElementOpenTag(element) .. phrasingContent .. writeElementCloseTag(elementName)
 end
-local writeXmlElement = module.writeXmlElement
+local writeElement = module.writeElement

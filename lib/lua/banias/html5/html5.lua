@@ -8,11 +8,11 @@ local tabelize = require('halimede.tabelize').tabelize
 
 local xmlwriter = require('xmlwriter')
 local writeText = xmlwriter.writeText
-local writeXmlElementNameWithAttributes = xmlwriter.writeXmlElementNameWithAttributes
-local writeXmlElementOpenTag = xmlwriter.writeXmlElementOpenTag
-local writeXmlElementCloseTag = xmlwriter.writeXmlElementCloseTag
-local writeXmlElementEmptyTag = xmlwriter.writeXmlElementEmptyTag
-local writeXmlElement = xmlwriter.writeXmlElement
+local writeElementNameWithAttributes = xmlwriter.writeElementNameWithAttributes
+local writeElementOpenTag = xmlwriter.writeElementOpenTag
+local writeElementCloseTag = xmlwriter.writeElementCloseTag
+local writeElementEmptyTag = xmlwriter.writeElementEmptyTag
+local writeElement = xmlwriter.writeElement
 
 local assert = require('halimede.assert')
 
@@ -85,8 +85,6 @@ Required styles:-
 
 ]]--
 
--- TODO: Omit quotes if no spaces at all in attributes?
-
 -- Table to store footnotes, so they can be included at the end.
 local footnotes = tabelize()
 --TODO: Add meta author, dcterms.date to ?metadata?
@@ -106,11 +104,11 @@ function Doc(body, metadata, variables)
 	
 	-- TODO: Don't we always want to output this, as it may occupy space on the page (eg styled as a block)?
 	if #footnotes > 0 then
-		add(writeXmlElementOpenTag(writeXmlElementNameWithAttributes('ol', {class = 'footnotes'})))
+		add(writeElementOpenTag(writeElementNameWithAttributes('ol', {class = 'footnotes'})))
 		for _, footnote in pairs(footnotes) do
 			add(footnote)
 		end
-		add(writeXmlElementCloseTag('ol'))
+		add(writeElementCloseTag('ol'))
 	end
 	
 	return buffer:concat()
@@ -126,7 +124,7 @@ requireChild('Image')
 function Para(phrasingContent)
 	assert.parameterTypeIsString(phrasingContent)
 	
-	return writeXmlElement('p', phrasingContent)
+	return writeElement('p', phrasingContent)
 end
 
 function RawBlock(format, content)
@@ -138,12 +136,12 @@ function RawBlock(format, content)
 	else
 		-- Just drop the output; Pandoc only supports MathJax in RawBlock
 		return ''
-		--return writeXmlElement('pre', writeText(content))
+		--return writeElement('pre', writeText(content))
 	end
 end
 
 function HorizontalRule()
-	return writeXmlElementEmptyTag('hr')
+	return writeElementEmptyTag('hr')
 end
 
 function Header(oneBasedLevelInteger, phrasingContent, attributesTable)
@@ -151,7 +149,7 @@ function Header(oneBasedLevelInteger, phrasingContent, attributesTable)
 	assert.parameterTypeIsString(phrasingContent)
 	assert.parameterTypeIsTable(attributesTable)
 	
-	return writeXmlElement('h' .. oneBasedLevelInteger, phrasingContent, attributesTable)
+	return writeElement('h' .. oneBasedLevelInteger, phrasingContent, attributesTable)
 end
 
 local codeblocks = requireChild('codeblocks')
@@ -172,7 +170,7 @@ end
 function BlockQuote(phrasingContent)
 	assert.parameterTypeIsString(phrasingContent)
 	
-	return writeXmlElement('blockquote', phrasingContent)
+	return writeElement('blockquote', phrasingContent)
 end
 
 requireChild('Table')
@@ -197,14 +195,14 @@ function DefinitionList(items)
 			assert.parameterTypeIsString(definitionTerm)
 			assert.parameterTypeIsTable(definitions)
 			
-			add(writeXmlElement('dt', definitionTerm))
+			add(writeElement('dt', definitionTerm))
 			
 			for _, definition in ipairs(definitions) do
-				add(writeXmlElement('dd', definition))
+				add(writeElement('dd', definition))
 			end
 		end
 	end
-	return writeXmlElement('dl', buffer:concat(), {})
+	return writeElement('dl', buffer:concat(), {})
 end
 
 -- TODO: No use of <section>? Why?
@@ -212,7 +210,7 @@ function Div(content, attributesTable)
 	assert.parameterTypeIsString(content)
 	assert.parameterTypeIsTable(attributesTable)
 	
-	return writeXmlElement('div', content, attributesTable)
+	return writeElement('div', content, attributesTable)
 end
 
 function Blocksep()
@@ -232,38 +230,38 @@ end
 function Emph(phrasingContent)
 	assert.parameterTypeIsString(phrasingContent)
 	
-	return writeXmlElement('em', phrasingContent)
+	return writeElement('em', phrasingContent)
 end
 
 function Strong(phrasingContent)
 	assert.parameterTypeIsString(phrasingContent)
 	
-	return writeXmlElement('strong', phrasingContent)
+	return writeElement('strong', phrasingContent)
 end
 
 function Strikeout(phrasingContent)
 	assert.parameterTypeIsString(phrasingContent)
 	
-	return writeXmlElement('del', phrasingContent)
+	return writeElement('del', phrasingContent)
 end
 
 function Subscript(phrasingContent)
 	assert.parameterTypeIsString(phrasingContent)
 	
-	return writeXmlElement('sub', phrasingContent)
+	return writeElement('sub', phrasingContent)
 end
 
 function Superscript(phrasingContent)
 	assert.parameterTypeIsString(phrasingContent)
 	
-	return writeXmlElement('sup', phrasingContent)
+	return writeElement('sup', phrasingContent)
 end
 
 function SmallCaps(phrasingContent)
 	assert.parameterTypeIsString(phrasingContent)
 	
 	-- was style = 'font-variant: small-caps;'  but this is longer than class="smallcaps"
-	return writeXmlElement('span', phrasingContent, {class = 'smallcaps'})
+	return writeElement('span', phrasingContent, {class = 'smallcaps'})
 end
 
 local singleOpeningQuoteUtf8 = '\226\128\152' -- LEFT SINGLE QUOTATION MARK, Unicode: U+2018, UTF-8: E2 80 98
@@ -299,14 +297,14 @@ function Cite(phrasingContent, citations)
 	}
 	attributesTable['data-citation-identifiers'] = identifiers:concat(',')
 	
-	return writeXmlElement('span', phrasingContent, attributesTable)
+	return writeElement('span', phrasingContent, attributesTable)
 end
 
 function Code(rawCodeString, attributesTable)
 	assert.parameterTypeIsString(rawCodeString)
 	assert.parameterTypeIsTable(attributesTable)
 	
-	return writeXmlElement('code', writeText(rawCodeString), attributesTable)
+	return writeElement('code', writeText(rawCodeString), attributesTable)
 end
 
 function DisplayMath(rawText)
@@ -331,12 +329,12 @@ function RawInline(format, content)
 		-- Could be latex, Pandoc here only supports LaTeXMathML and MathJax
 		-- Commenting is dangerous; -- needs removing, as does ]]> and they still exist as nodes, so we simply silently drop them from output
 		return ''
-		--return writeXmlElement('code', writeText(content))
+		--return writeElement('code', writeText(content))
 	end
 end
 
 function LineBreak()
-	return writeXmlElementEmptyTag('br')
+	return writeElementEmptyTag('br')
 end
 
 function Link(phrasingContent, url, title)
@@ -344,7 +342,7 @@ function Link(phrasingContent, url, title)
 	assert.parameterTypeIsString(url)
 	assert.parameterTypeIsString(title)
 	
-	return writeXmlElement('a', phrasingContent, {url = url, title = title})
+	return writeElement('a', phrasingContent, {url = url, title = title})
 end
 
 requireChild('Image')
@@ -363,18 +361,18 @@ function Note(phrasingContent)
 	local footnoteReferenceIdentifier = footnoteReferenceIdentifierPrefix .. oneBasedFootnoteIndex
 	local footnoteReferenceIdentifierHref = '#' .. footnoteReferenceIdentifierPrefix .. oneBasedFootnoteIndex
 	
-	local xxx = writeXmlElement('a', unicodeLeftwardArrowWithHookInUtf8, {href = footnoteReferenceIdentifierHref})
+	local xxx = writeElement('a', unicodeLeftwardArrowWithHookInUtf8, {href = footnoteReferenceIdentifierHref})
 	phrasingContentWithBackReferenceRightBeforeTheFinalClosingTag = phrasingContent:gsub('(.*)</', '%1 ' .. xxx .. '</')
 	
-	footnotes:insert(writeXmlElement('li', phrasingContentWithBackReferenceRightBeforeTheFinalClosingTag, {id = footnoteIdentifier}))
+	footnotes:insert(writeElement('li', phrasingContentWithBackReferenceRightBeforeTheFinalClosingTag, {id = footnoteIdentifier}))
 	
-	local sup = writeXmlElement('sup', '' .. oneBasedFootnoteIndex)
-	return writeXmlElement('a', sup, {id = footnoteReferenceIdentifier, href = footnoteIdentifierHref})
+	local sup = writeElement('sup', '' .. oneBasedFootnoteIndex)
+	return writeElement('a', sup, {id = footnoteReferenceIdentifier, href = footnoteIdentifierHref})
 end
 
 function Span(phrasingContent, attributesTable)
 	assert.parameterTypeIsString(phrasingContent)
 	assert.parameterTypeIsTable(attributesTable)
 	
-	return writeXmlElement('span', phrasingContent, attributesTable)
+	return writeElement('span', phrasingContent, attributesTable)
 end

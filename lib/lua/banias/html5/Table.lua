@@ -6,11 +6,11 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 
 local xmlwriter = require('xmlwriter')
 local writeText = xmlwriter.writeText
-local writeXmlElementNameWithAttributes = xmlwriter.writeXmlElementNameWithAttributes
-local writeXmlElementOpenTag = xmlwriter.writeXmlElementOpenTag
-local writeXmlElementCloseTag = xmlwriter.writeXmlElementCloseTag
-local writeXmlElementEmptyTag = xmlwriter.writeXmlElementEmptyTag
-local writeXmlElement = xmlwriter.writeXmlElement
+local writeElementNameWithAttributes = xmlwriter.writeElementNameWithAttributes
+local writeElementOpenTag = xmlwriter.writeElementOpenTag
+local writeElementCloseTag = xmlwriter.writeElementCloseTag
+local writeElementEmptyTag = xmlwriter.writeElementEmptyTag
+local writeElement = xmlwriter.writeElement
 
 local assert = require('halimede.assert')
 
@@ -43,17 +43,17 @@ function Table(caption, pandocAlignments, widths, headers, rows)
 		buffer:insert(content)
 	end
 	
-	add(writeXmlElementOpenTag('table'))
+	add(writeElementOpenTag('table'))
   
 	if caption ~= '' then
-		add(writeXmlElement('caption', caption))
+		add(writeElement('caption', caption))
 	end
 	
 	if widths and widths[1] ~= 0 then
     	for _, width in pairs(widths) do
 			assert.parameterTypeIsNumber(width)
 			local percentageWidth = string.format('%d%%', width * 100)
-			add(writeXmlElement('col', '', {width = percentageWidth}))
+			add(writeElement('col', '', {width = percentageWidth}))
 		end
 	end
 	
@@ -62,31 +62,31 @@ function Table(caption, pandocAlignments, widths, headers, rows)
 	for columnIndex, headerCellPhrasedContent in pairs(headers) do
 		assert.parameterTypeIsString(headerCellPhrasedContent)
 		local align = pandocToHtmlAlignmentLookUp[pandocAlignments[columnIndex]]
-		headerRow:insert(writeXmlElement('th', headerCellPhrasedContent, {class = 'align ' .. align}))
+		headerRow:insert(writeElement('th', headerCellPhrasedContent, {class = 'align ' .. align}))
 		isHeaderEmpty = isHeaderEmpty and headerCellPhrasedContent == ''
 	end
 	if not isHeaderEmpty then
-		add(writeXmlElementOpenTag(writeXmlElementNameWithAttributes('tr', {class = 'header'})))
+		add(writeElementOpenTag(writeElementNameWithAttributes('tr', {class = 'header'})))
 		for _, thCell in pairs(headerRow) do
 			add(thCell)
 		end
-		add(writeXmlElementCloseTag('tr'))
+		add(writeElementCloseTag('tr'))
 	end
 	
 	local class = 'even'
 	for _, row in pairs(rows) do
 		assert.parameterTypeIsTable(row)
 		class = (class == 'even' and 'odd') or 'even'
-		add(writeXmlElementOpenTag(writeXmlElementNameWithAttributes('tr', {class = class})))
+		add(writeElementOpenTag(writeElementNameWithAttributes('tr', {class = class})))
 		for columnIndex, rowCellPhrasedContent in pairs(row) do
 			assert.parameterTypeIsString(rowCellPhrasedContent)
 			local align = pandocToHtmlAlignmentLookUp[pandocAlignments[columnIndex]]
-			add(writeXmlElement('td', rowCellPhrasedContent, {class = 'align ' .. align}))
+			add(writeElement('td', rowCellPhrasedContent, {class = 'align ' .. align}))
 		end
-		add(writeXmlElementCloseTag('tr'))
+		add(writeElementCloseTag('tr'))
 	end
 	
-	add(writeXmlElementCloseTag('table'))
+	add(writeElementCloseTag('table'))
 	
 	return buffer:concat()
 end

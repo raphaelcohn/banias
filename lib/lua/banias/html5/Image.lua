@@ -9,11 +9,11 @@ local tabelize = require('halimede.tabelize').tabelize
 
 local xmlwriter = require('xmlwriter')
 local writeText = xmlwriter.writeText
-local writeXmlElementNameWithAttributes = xmlwriter.writeXmlElementNameWithAttributes
-local writeXmlElementOpenTag = xmlwriter.writeXmlElementOpenTag
-local writeXmlElementCloseTag = xmlwriter.writeXmlElementCloseTag
-local writeXmlElementEmptyTag = xmlwriter.writeXmlElementEmptyTag
-local writeXmlElement = xmlwriter.writeXmlElement
+local writeElementNameWithAttributes = xmlwriter.writeElementNameWithAttributes
+local writeElementOpenTag = xmlwriter.writeElementOpenTag
+local writeElementCloseTag = xmlwriter.writeElementCloseTag
+local writeElementEmptyTag = xmlwriter.writeElementEmptyTag
+local writeElement = xmlwriter.writeElement
 
 local assert = require('halimede.assert')
 
@@ -28,10 +28,10 @@ function CaptionedImage(url, title, altText)
 		buffer:insert(content)
 	end
 	
-	add(writeXmlElementOpenTag('figure'))
+	add(writeElementOpenTag('figure'))
 	add(Image(altText, url, title))
-	add(writeXmlElement('figcaption', altText))
-	add(writeXmlElementCloseTag('figure'))
+	add(writeElement('figcaption', altText))
+	add(writeElementCloseTag('figure'))
 	
 	return buffer:concat()
 end
@@ -66,5 +66,5 @@ function Image(altText, url, titleWithoutSmartQuotes)
 		
 		index = index + 1
 	end
-	return writeXmlElement('img', '', {url = url, title = titleWithoutSmartQuotes, alt = altText, width = jpegInfo.width, height = jpegInfo.height})
+	return writeElement('img', '', {url = url, title = titleWithoutSmartQuotes, alt = altText, width = jpegInfo.width, height = jpegInfo.height})
 end

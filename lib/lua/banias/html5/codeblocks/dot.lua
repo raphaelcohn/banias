@@ -6,11 +6,11 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 
 local xmlwriter = require('xmlwriter')
 local writeText = xmlwriter.writeText
-local writeXmlElementNameWithAttributes = xmlwriter.writeXmlElementNameWithAttributes
-local writeXmlElementOpenTag = xmlwriter.writeXmlElementOpenTag
-local writeXmlElementCloseTag = xmlwriter.writeXmlElementCloseTag
-local writeXmlElementEmptyTag = xmlwriter.writeXmlElementEmptyTag
-local writeXmlElement = xmlwriter.writeXmlElement
+local writeElementNameWithAttributes = xmlwriter.writeElementNameWithAttributes
+local writeElementOpenTag = xmlwriter.writeElementOpenTag
+local writeElementCloseTag = xmlwriter.writeElementCloseTag
+local writeElementEmptyTag = xmlwriter.writeElementEmptyTag
+local writeElement = xmlwriter.writeElement
 
 local assert = require('halimede.assert')
 local shell = require('halimede.shell').shell
@@ -40,5 +40,5 @@ parentModule.register(leafModuleName, function(rawCodeString, attributesTable)
 	local dotted = pipe(rawCodeString, 'dot', '-Tpng')
     local base64EncondedPortalNetworkGraphicsImage = pipe(dotted, 'base64')
 	
-	return writeXmlElement('img', '', {src = 'data:image/png;base64,' .. base64EncondedPortalNetworkGraphicsImage})
+	return writeElement('img', '', {src = 'data:image/png;base64,' .. base64EncondedPortalNetworkGraphicsImage})
 end)

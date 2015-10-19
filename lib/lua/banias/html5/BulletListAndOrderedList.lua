@@ -6,11 +6,11 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 
 local xmlwriter = require('xmlwriter')
 local writeText = xmlwriter.writeText
-local writeXmlElementNameWithAttributes = xmlwriter.writeXmlElementNameWithAttributes
-local writeXmlElementOpenTag = xmlwriter.writeXmlElementOpenTag
-local writeXmlElementCloseTag = xmlwriter.writeXmlElementCloseTag
-local writeXmlElementEmptyTag = xmlwriter.writeXmlElementEmptyTag
-local writeXmlElement = xmlwriter.writeXmlElement
+local writeElementNameWithAttributes = xmlwriter.writeElementNameWithAttributes
+local writeElementOpenTag = xmlwriter.writeElementOpenTag
+local writeElementCloseTag = xmlwriter.writeElementCloseTag
+local writeElementEmptyTag = xmlwriter.writeElementEmptyTag
+local writeElement = xmlwriter.writeElement
 
 local assert = require('halimede.assert')
 
@@ -23,9 +23,9 @@ local function htmlSimpleList(elementName, items, attributesTable)
 	local buffer = tabelize()
 	for _, phrasingContent in pairs(items) do
 		assert.parameterTypeIsString(phrasingContent)
-		buffer:insert(writeXmlElement('li', phrasingContent))
+		buffer:insert(writeElement('li', phrasingContent))
 	end
-	return writeXmlElement(elementName, buffer:concat(), attributesTable)
+	return writeElement(elementName, buffer:concat(), attributesTable)
 end
 
 function BulletList(items)

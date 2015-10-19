@@ -6,11 +6,11 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 
 local xmlwriter = require('xmlwriter')
 local writeText = xmlwriter.writeText
-local writeXmlElementNameWithAttributes = xmlwriter.writeXmlElementNameWithAttributes
-local writeXmlElementOpenTag = xmlwriter.writeXmlElementOpenTag
-local writeXmlElementCloseTag = xmlwriter.writeXmlElementCloseTag
-local writeXmlElementEmptyTag = xmlwriter.writeXmlElementEmptyTag
-local writeXmlElement = xmlwriter.writeXmlElement
+local writeElementNameWithAttributes = xmlwriter.writeElementNameWithAttributes
+local writeElementOpenTag = xmlwriter.writeElementOpenTag
+local writeElementCloseTag = xmlwriter.writeElementCloseTag
+local writeElementEmptyTag = xmlwriter.writeElementEmptyTag
+local writeElement = xmlwriter.writeElement
 
 local assert = require('halimede.assert')
 
@@ -19,7 +19,7 @@ function default(rawCodeString, attributesTable)
 	assert.parameterTypeIsTable(attributesTable)
 	
 	-- TODO: Consider adding highlighters here, eg using kate
-	return writeXmlElement('pre', writeXmlElement('code', writeText(rawCodeString), attributesTable))
+	return writeElement('pre', writeElement('code', writeText(rawCodeString), attributesTable))
 end
 module.default = default
 
