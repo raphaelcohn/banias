@@ -14,37 +14,6 @@ leafModuleName = ''
 parentModule = rootParentModule
 package.loaded[''] = module
 
-function module.dirname(path)
-	assert(type(path) == 'string')
-	
-	if path:match('.-/.-') then
-		return path:gsub('(.*/)(.*)', '%1')
-	else
-		return './'
-	end
-end
-local dirname = module.dirname
-
-function module.findArg0()
-	if type(arg) == 'table' and type(arg[0]) = 'string' then
-		return arg[0]
-	else
-		if debug ~=nil and debug.getinfo ~= nil then
-			-- May not be a path, could be compiled C code, etc
-			return debug.getinfo(findOurPath, 'S').source
-		else
-			return ''
-		end
-	end
-end
-local findArg0 = module.findArg0
-
--- Ideally, we need to use realpath to resolve symlinks
-function module.findOurFolderPath()
-	return dirname(findArg0())
-end
-local findOurFolderPath = module.findOurFolderPath
-
 local function initialisePackageConfiguration(package)
 	
 	local packageConfigurationMapping = {
@@ -66,8 +35,49 @@ local function initialisePackageConfiguration(package)
 	return configuration
 end
 module.packageConfiguration = initialisePackageConfiguration(package)
+local packageConfiguration = module.packageConfiguration
 
-local function determineLuaLibraryFileExtension()
+function module.dirname(path, folderSeparator)
+	assert(type(path) == 'string')
+	
+	local regexSeparator
+	if folderSeparator == '\\' then
+		regexSeparator = '\\\\'
+	else
+		regexSeparator = folderSeparator
+	end
+	
+	if path:match('.-' .. regexSeparator .. '.-') then
+		local withTrailingSlash = path:gsub('(.*' .. regexSeparator .. ')(.*)', '%1')
+		return withTrailingSlash:sub(1, #withTrailingSlash - 1)
+	else
+		return './'
+	end
+end
+local dirname = module.dirname
+
+function module.findArg0()
+	if type(arg) == 'table' and type(arg[0]) == 'string' then
+		return arg[0]
+	else
+		if debug ~=nil and debug.getinfo ~= nil then
+			-- May not be a path, could be compiled C code, etc
+			local withLeadingAt = debug.getinfo(initialisePackageConfiguration, 'S').source
+			return withLeadingAt:sub(2)
+		else
+			return ''
+		end
+	end
+end
+local findArg0 = module.findArg0
+
+-- Ideally, we need to use realpath to resolve symlinks
+function module.findOurFolderPath()
+	return dirname(findArg0(), packageConfiguration.folderSeparator)
+end
+local findOurFolderPath = module.findOurFolderPath
+
+local function determineLuaLibraryFileExtension(folderSeparator)
 	
 	local dll = 'dll'
 	local so = 'so'
@@ -90,7 +100,7 @@ local function determineLuaLibraryFileExtension()
 		return knownOperatingSystemsMapping[jit.os]
 	end
 	
-	if packageConfiguration.folderSeparator == '\\' then
+	if folderSeparator == '\\' then
 		return dll
 	end
 	
@@ -99,22 +109,33 @@ local function determineLuaLibraryFileExtension()
 end
 
 local function siblingPath()
+	local folderSeparator = packageConfiguration.folderSeparator
+	local pathSeparator = packageConfiguration.pathSeparator
+	local substitutionPoint = packageConfiguration.substitutionPoint
+	
 	return substitutionPoint
 end
 
 local function initPath()
-	return substitutionPoint .. folderSeparator .. 'init'
-end
-
-local function namedInFolderPath()
-	return substitutionPoint .. folderSeparator .. substitutionPoint
-end
-
-local function initialiseSearchPaths(ourPath, package, packageConfiguration, subFoldersBelowRootPath)
-	
 	local folderSeparator = packageConfiguration.folderSeparator
 	local pathSeparator = packageConfiguration.pathSeparator
 	local substitutionPoint = packageConfiguration.substitutionPoint
+	
+	return substitutionPoint .. folderSeparator .. 'init'
+end
+
+-- Only works for top-level modules, eg halimede/halimede.lua, not banias/html5/html5.lua
+local function namedInFolderPath()
+	local folderSeparator = packageConfiguration.folderSeparator
+	local pathSeparator = packageConfiguration.pathSeparator
+	local substitutionPoint = packageConfiguration.substitutionPoint
+	
+	return substitutionPoint .. folderSeparator .. substitutionPoint
+end
+
+local function initialiseSearchPaths(ourPath, subFoldersBelowRootPath, ...)
+	
+	local pathCreatingFunctions = {...}
 	
 	local rootPath
 	if #subFoldersBelowRootPath > 0 then
@@ -124,11 +145,10 @@ local function initialiseSearchPaths(ourPath, package, packageConfiguration, sub
 		rootPath = ourPath
 	end
 	
-	
 	local function paths(fileExtension, ...)
 		
 		local function makeAbsolutePath(path)
-			return rootPath .. path .. '.' .. fileExtension
+			return rootPath .. folderSeparator .. path .. '.' .. fileExtension
 		end
 		
 		local paths = {}
@@ -139,7 +159,7 @@ local function initialiseSearchPaths(ourPath, package, packageConfiguration, sub
 	end
 	
 	package.path = paths('lua', siblingPath(), initPath(), namedInFolderPath())
-	package.cpath = paths(determineLuaLibraryFileExtension(), siblingPath(), initPath(), namedInFolderPath())
+	package.cpath = paths(determineLuaLibraryFileExtension(folderSeparator), siblingPath(), initPath(), namedInFolderPath())
 	
 	-- TODO: Should we also set LD_LIBRARY_PATH for the csearchers (so that when they wrap, say, OpenSSL, things work)?
 end
@@ -206,8 +226,28 @@ local function usefulRequire(moduleNameLocal, loaded, searchers, folderSeparator
 	leafModuleName = leafModuleNameLocal
 	parentModule = loaded[parentModuleNameLocal]
 	
+	-- DO THIS LOOP TWICE with diff functions
+	
+	local loops = {
+		{siblingPath, initPath, namedInFolderPath},
+		{siblingPath, initPath, function()
+			-- Do stuff with modname so banias/html5/html5.lua works...
+			XXXXXX
+		end}
+	}
+	XXXadaad: das das
+	
+	initialiseSearchPaths(findOurFolderPath(), {'..'}, siblingPath, initPath, namedInFolderPath)
+	
 	for _, searcher in ipairs(searchers) do
 		-- filePath only in Lua 5.2+, and not set by the preload searcher
+		
+		-- doesn't work for 'banias/html5/html5.lua'; tries to look for banias/html5.lua (OK), banias/html5/init.lua (OK, but annoying as lots of init.lua files), banias/html5/banias/html5.lua (irrititating, and needed if we're going to support git submodule of other people's Lua code, where there's a file in the root of the repo)
+		-- we could run the searcher multiple times and change the path / cpath each time (ie we control the path)
+		-- we could implement our own searchers for Lua and C (but not all-in-one)
+		-- we could load code into the preload table (quite cunning, really, and the way we would ship an all-in-one Lua file in any event)
+				
+		
 		local moduleLoaderOrFailedToFindExplanationString, filePath = searcher(moduleNameLocal)
 		if type(moduleLoaderOrFailedToFindExplanationString) == 'function' then
 			local result = moduleLoaderOrFailedToFindExplanationString()
@@ -225,6 +265,10 @@ local function usefulRequire(moduleNameLocal, loaded, searchers, folderSeparator
 			loaded[moduleNameLocal] = ourResult
 			resetModuleGlobals()
 			return ourResult
+		else
+			
+			-- 	no file '../halimede/../banias/html5/banias/html5.lua'
+		io.stderr:write(moduleLoaderOrFailedToFindExplanationString .. '\n')
 		end
 	end
 	
@@ -249,13 +293,62 @@ function require(modname)
 	return usefulRequire(modname, package.loaded, searchers, packageConfiguration.folderSeparator)
 end
 
+local function createSearchers()
+	
+	-- Lua 5.1 / 5.2 compatibility
+	local originalSearchers = package.searchers
+	if originalSearchers == nil then
+		originalSearchers = package.loaders
+	end
+
+	local originalLuaPathSearcher = package.searchers[2]
+	local originalLuaCPathSearcher = package.searchers[3]
+	local originalLuaAllInOneCPathSearcher = package.searchers[4]
+	
+	-- Brittle code; assumes searchers have not been modified by the Lua host
+	local replacementSearchers = {
+		originalSearchers[1],
+		function(modname)
+			local moduleLoaderOrFailedToFindExplanationString, filePath
+			local originalPath = package.path
+			package.path = 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
+			do
+				moduleLoaderOrFailedToFindExplanationString, filePath = originalLuaPathSearcher(modname)
+			end
+			package.path = originalPath
+			return moduleLoaderOrFailedToFindExplanationString, filePath
+		end,
+		function(modname)
+			local moduleLoaderOrFailedToFindExplanationString, filePath
+			local originalCPath = package.cpath
+			do
+				moduleLoaderOrFailedToFindExplanationString, filePath = originalLuaCPathSearcher(modname)
+			end
+			package.cpath = originalCPath
+			return moduleLoaderOrFailedToFindExplanationString, filePath
+		end,
+		function(modname)
+			local moduleLoaderOrFailedToFindExplanationString, filePath
+			local originalCPath = package.cpath
+			do
+				moduleLoaderOrFailedToFindExplanationString, filePath = originalLuaAllInOneCPathSearcher(modname)
+			end
+			package.cpath = originalCPath
+			return moduleLoaderOrFailedToFindExplanationString, filePath
+		end
+	}
+	table.insert(replacementSearchers, originalSearchers[1])
+	
+end
+
 -- Support being require'd ourselves
 if moduleName == '' then
 	
-	initialiseSearchPaths(findOurFolderPath(), package, module.packageConfiguration, {'..'})
+	initialiseSearchPaths(findOurFolderPath(), {'..'}, siblingPath, initPath, namedInFolderPath)
 
 	local ourModuleName = 'halimede'
-	local halimedeDebug = require(ourModuleName .. '.debug')
+	package.loaded[ourModuleName] = module
+	local halimedeTrace = require(ourModuleName .. '.trace')
 	local halimedeRequireChild = require(ourModuleName .. '.requireChild')
 	local halimedeRequireSibling = require(ourModuleName .. '.requireSibling')
 else

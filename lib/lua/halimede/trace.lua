@@ -4,11 +4,11 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 ]]--
 
 
-local function debugIfRequired()
+local function traceIfRequired()
 	
-	local environmentVariable = 'PANDOC_LUA_BANIAS_DEBUG'
+	local environmentVariable = 'PANDOC_LUA_BANIAS_TRACE'
 	
-	-- Defensive list of functions so debug doesn't crash programs unnecessarily
+	-- Check for functions in the global namespace that we rely on that might have been removed in a sandbox; don't enable tracing if they're not present.
 	
 	if os == nil then
 		return
@@ -33,12 +33,12 @@ local function debugIfRequired()
 		return
 	end
 	
-	local getinfo == debug.getinfo
+	local getinfo = debug.getinfo
 	if getinfo == nil then
 		return
 	end
 	
-	local sethook == debug.sethook
+	local sethook = debug.sethook
 	if sethook == nil then
 		return
 	end
@@ -111,4 +111,4 @@ local function debugIfRequired()
 	end, 'cr')
 end
 
-debugIfRequired()
+traceIfRequired()
