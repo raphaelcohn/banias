@@ -6,15 +6,15 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 
 local tabelize = require('halimede.tabelize').tabelize
 
-local xml = require('xml')
-local escapeRawText = xml.escapeRawText
-local attributes = xml.attributes
-local xmlElementNameWithAttributes = xml.xmlElementNameWithAttributes
-local xmlElementOpenTag = xml.xmlElementOpenTag
-local xmlElementCloseTag = xml.xmlElementCloseTag
-local xmlElementEmptyTag = xml.xmlElementEmptyTag
-local potentiallyEmptyXml = xml.potentiallyEmptyXml
-local potentiallyEmptyXmlWithAttributes = xml.potentiallyEmptyXmlWithAttributes
+local xmlwriter = require('xmlwriter')
+local escapeRawText = xmlwriter.escapeRawText
+local attributes = xmlwriter.attributes
+local xmlElementNameWithAttributes = xmlwriter.xmlElementNameWithAttributes
+local xmlElementOpenTag = xmlwriter.xmlElementOpenTag
+local xmlElementCloseTag = xmlwriter.xmlElementCloseTag
+local xmlElementEmptyTag = xmlwriter.xmlElementEmptyTag
+local potentiallyEmptyXml = xmlwriter.potentiallyEmptyXml
+local potentiallyEmptyXmlWithAttributes = xmlwriter.potentiallyEmptyXmlWithAttributes
 
 local assert = require('halimede.assert')
 
