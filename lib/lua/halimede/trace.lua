@@ -52,7 +52,7 @@ local function traceIfRequired()
 	
 	debug.sethook(function(event)
 		
-		assert.parameterIsString(event)
+		assert.parameterTypeIsString(event)
 		
 		local nameInfo = getinfo(2, 'n')
 	

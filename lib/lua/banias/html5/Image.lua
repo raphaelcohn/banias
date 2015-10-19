@@ -19,10 +19,9 @@ local assert = require('halimede.assert')
 
 
 function CaptionedImage(url, title, altText)
-
-	assert.parameterIsString(url)
-	assert.parameterIsString(title)
-	assert.parameterIsString(altText)
+	assert.parameterTypeIsString(url)
+	assert.parameterTypeIsString(title)
+	assert.parameterTypeIsString(altText)
 	
 	local buffer = tabelize()
 	local function add(content)
@@ -38,10 +37,9 @@ function CaptionedImage(url, title, altText)
 end
 
 function Image(altText, url, titleWithoutSmartQuotes)
-	
-	assert.parameterIsString(altText)
-	assert.parameterIsString(url)
-	assert.parameterIsString(titleWithoutSmartQuotes))
+	assert.parameterTypeIsString(altText)
+	assert.parameterTypeIsString(url)
+	assert.parameterTypeIsString(titleWithoutSmartQuotes)
 	
 	
 	local conversionMapping = {
@@ -52,8 +50,6 @@ function Image(altText, url, titleWithoutSmartQuotes)
 	
 	-- TODO: If URL doesn't start with '/' then embed? Or does the symlink point to a FOLDER?
 	
-	-- TODO: this is where we can embed our size logic with jpeginfo
-	local shell = require('banias').shell
 	-- jpeginfo --info --lsstyle html5/banias-spring.jpg
 	-- 2592 x 1944 24bit Exif  Normal Huffman 1303996 html5/banias-spring.jpg
 	-- TODO: Check if jpeg using file xxx, may be it's a PNG or GIF

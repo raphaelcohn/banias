@@ -20,24 +20,21 @@ local function htmlSimpleList(elementName, items)
 	
 	local buffer = tabelize()
 	for _, phrasingContent in pairs(items) do
-		assert.parameterIsString(phrasingContent)
+		assert.parameterTypeIsString(phrasingContent)
 		buffer:insert(writeXmlElement('li', phrasingContent))
 	end
 	return writeXmlElement(elementName, buffer:concat())
 end
-local htmlSimpleList = module.htmlSimpleList
 
 function BulletList(items)
-	
-	assert.parameterIsTable(items)
+	assert.parameterTypeIsTable(items)
 	
 	return htmlSimpleList('ul', items)
 end
 
 -- TODO: Use number, style and delimiter
 function OrderedList(items, number, style, delimiter)
-	
-	assert.parameterIsTable(items)
+	assert.parameterTypeIsTable(items)
 	
 	return htmlSimpleList('ol', items)
 end

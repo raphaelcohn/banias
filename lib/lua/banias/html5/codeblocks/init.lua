@@ -15,9 +15,8 @@ local writeXmlElement = xmlwriter.writeXmlElement
 local assert = require('halimede.assert')
 
 function default(rawCodeString, attributesTable)
-	
-	assert.parameterIsString(rawCodeString)
-	assert.parameterIsTable(attributesTable)
+	assert.parameterTypeIsString(rawCodeString)
+	assert.parameterTypeIsTable(attributesTable)
 	
 	-- TODO: Consider adding highlighters here, eg using kate
 	return writeXmlElement('pre', writeXmlElement('code', writeText(rawCodeString), attributesTable))
@@ -26,9 +25,8 @@ module.default = default
 
 local functions = setmetatable({}, {
 	__index = function(_, key)
-
-		assert.parameterIsTable(_)
-		assert.parameterIsString(key)
+		assert.parameterTypeIsTable(_)
+		assert.parameterTypeIsString(key)
 		
 		return default
 	end
@@ -36,9 +34,8 @@ local functions = setmetatable({}, {
 module.functions = functions
 
 module.register = function(name, someCodeBlockFunction)
-	
-	assert.parameterIsString(name)
-	assert.parameterIsFunction(someCodeBlockFunction)
+	assert.parameterTypeIsString(name)
+	assert.parameterTypeIsFunction(someCodeBlockFunction)
 	
 	functions[name] = someCodeBlockFunction
 end

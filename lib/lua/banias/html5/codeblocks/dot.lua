@@ -21,15 +21,15 @@ local halimedeIo = require('halimede.io')
 -- Runs dot then base64 on 'rawCodeString' to produce a base64-encoded png in a data: URL
 -- Added to retain compatibility with JGM's Pandoc
 parentModule.register(leafModuleName, function(rawCodeString, attributesTable)
-	
-	assert.parameterIsString(rawCodeString)
-	assert.parameterIsTable(attributesTable)
+	assert.parameterTypeIsString(rawCodeString)
+	assert.parameterTypeIsTable(attributesTable)
 	
 	local function pipe(outputBytes, ...)
 		
 		local commandlineArguments = tabelize({...})
 		
 		halimedeIo.writeToTemporaryFileAllContentsInTextModeAndUse(outputBytes, function(temporaryFileContainingOutputBytes)
+			assert.parameterTypeIsString(temporaryFileContainingOutputBytes)
 			
 			commandLineArguments:insert(temporaryFileContainingOutputBytes)
 			return shell(unpack(commandlineArguments))

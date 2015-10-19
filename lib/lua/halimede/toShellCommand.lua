@@ -5,10 +5,21 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 
 
 local assert = requireSibling('assert')
+local tabelize = requireSibling('tabelize').tabelize
 
-assert.globalTableHasChieldFieldOfTypeFunction('string', 'format')
-function module.throw(template, ...)
-	assert.parameterTypeIsString(template)
+
+assert.globalTableHasChieldFieldOfTypeFunction('string', 'gsub')
+function module.toShellCommand(...)
 	
-	error(template:format(...))
+	local arguments = {...}
+	
+	local commandBuffer = tabelize()
+	
+	for _, argument in ipairs(arguments) do
+		assert.parameterTypeIsString(argument)
+		commandBuffer:insert("'" .. argument:gsub("'", "''") .. "'")
+	end
+	
+	local command = commandBuffer:concat(' ')
+	return command
 end

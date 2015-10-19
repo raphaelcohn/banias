@@ -31,12 +31,11 @@ local pandocToHtmlAlignmentLookUp = setmetatable({
 )
 
 function Table(caption, pandocAlignments, widths, headers, rows)
-
-	assert.parameterIsString(caption)
-	assert.parameterIsTable(pandocAlignments)
-	assert.parameterIsTable(widths)
-	assert.parameterIsTable(headers)
-	assert.parameterIsTable(rows)
+	assert.parameterTypeIsString(caption)
+	assert.parameterTypeIsTable(pandocAlignments)
+	assert.parameterTypeIsTable(widths)
+	assert.parameterTypeIsTable(headers)
+	assert.parameterTypeIsTable(rows)
 	
 	local buffer = tabelize()
 	
@@ -52,7 +51,7 @@ function Table(caption, pandocAlignments, widths, headers, rows)
 	
 	if widths and widths[1] ~= 0 then
     	for _, width in pairs(widths) do
-			assert.parameterIsNumber(width)
+			assert.parameterTypeIsNumber(width)
 			local percentageWidth = string.format('%d%%', width * 100)
 			add(writeXmlElement('col', '', {width = percentageWidth}))
 		end
@@ -61,7 +60,7 @@ function Table(caption, pandocAlignments, widths, headers, rows)
 	local headerRow = tabelize()
 	local isHeaderEmpty = true
 	for columnIndex, headerCellPhrasedContent in pairs(headers) do
-		assert.parameterIsString(headerCellPhrasedContent)
+		assert.parameterTypeIsString(headerCellPhrasedContent)
 		local align = pandocToHtmlAlignmentLookUp[pandocAlignments[columnIndex]]
 		headerRow:insert(writeXmlElement('th', headerCellPhrasedContent, {class = 'align ' .. align}))
 		isHeaderEmpty = isHeaderEmpty and headerCellPhrasedContent == ''
@@ -76,11 +75,11 @@ function Table(caption, pandocAlignments, widths, headers, rows)
 	
 	local class = 'even'
 	for _, row in pairs(rows) do
-		assert.parameterIsTable(row)
+		assert.parameterTypeIsTable(row)
 		class = (class == 'even' and 'odd') or 'even'
 		add(writeXmlElementOpenTag(writeXmlElementNameWithAttributes('tr', {class = class})))
 		for columnIndex, rowCellPhrasedContent in pairs(row) do
-			assert.parameterIsString(rowCellPhrasedContent)
+			assert.parameterTypeIsString(rowCellPhrasedContent)
 			local align = pandocToHtmlAlignmentLookUp[pandocAlignments[columnIndex]]
 			add(writeXmlElement('td', rowCellPhrasedContent, {class = 'align ' .. align}))
 		end

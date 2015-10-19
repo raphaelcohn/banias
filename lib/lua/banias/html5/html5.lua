@@ -90,10 +90,9 @@ local footnotes = tabelize()
 --TODO: Add meta author, dcterms.date to ?metadata?
 --TODO: Missing <title></title>!
 function Doc(body, metadata, variables)
-
-	assert.parameterIsString(body)
-	assert.parameterIsTable(metadata)
-	assert.parameterIsTable(variables)
+	assert.parameterTypeIsString(body)
+	assert.parameterTypeIsTable(metadata)
+	assert.parameterTypeIsTable(variables)
 	
 	local buffer = tabelize()
 	
@@ -123,14 +122,14 @@ end
 requireChild('Image')
 
 function Para(phrasingContent)
-	assert.parameterIsString(phrasingContent)
+	assert.parameterTypeIsString(phrasingContent)
 	
 	return writeXmlElement('p', phrasingContent)
 end
 
 function RawBlock(format, content)
-	assert.parameterIsString(format)
-	assert.parameterIsString(content)
+	assert.parameterTypeIsString(format)
+	assert.parameterTypeIsString(content)
 	
 	if format == 'html' then
 		return content
@@ -144,9 +143,9 @@ function HorizontalRule()
 end
 
 function Header(oneBasedLevelInteger, phrasingContent, attributesTable)
-	assert.parameterIsNumber(oneBasedLevelInteger)
-	assert.parameterIsString(phrasingContent)
-	assert.parameterIsTable(attributesTable)
+	assert.parameterTypeIsNumber(oneBasedLevelInteger)
+	assert.parameterTypeIsString(phrasingContent)
+	assert.parameterTypeIsTable(attributesTable)
 	
 	return writeXmlElement('h' .. oneBasedLevelInteger, phrasingContent, attributesTable)
 end
@@ -155,8 +154,8 @@ local codeblocks = requireChild('codeblocks')
 local functions = codeblocks.functions
 
 function CodeBlock(rawCodeString, attributesTable)
-	assert.parameterIsString(rawCodeString)
-	assert.parameterIsTable(attributesTable)
+	assert.parameterTypeIsString(rawCodeString)
+	assert.parameterTypeIsTable(attributesTable)
 	
 	local class = attributesTable.class
 	if class then
@@ -167,7 +166,7 @@ function CodeBlock(rawCodeString, attributesTable)
 end
 
 function BlockQuote(phrasingContent)
-	assert.parameterIsString(phrasingContent)
+	assert.parameterTypeIsString(phrasingContent)
 	
 	return writeXmlElement('blockquote', phrasingContent)
 end
@@ -179,7 +178,7 @@ requireChild('BulletListAndOrderedList')
 -- TODO: Use <defn> tag to define a term in the <dt>, eg <dt><defn>hello</defn></dt><dd>A way to greet someone</dd></dt>
 -- TODO: Tag ommission rules for dd / dt  http://www.w3.org/html/wg/drafts/html/master/semantics.html#the-dl-element
 function DefinitionList(items)
-	assert.parameterIsTable(items)
+	assert.parameterTypeIsTable(items)
 	
 	local buffer = tabelize()
 	
@@ -188,11 +187,11 @@ function DefinitionList(items)
 	end
 	
 	for _, item in pairs(items) do
-		assert.parameterIsTable(item)
+		assert.parameterTypeIsTable(item)
 	
 		for definitionTerm, definitions in pairs(item) do
-			assert.parameterIsString(definitionTerm)
-			assert.parameterIsTable(definitions)
+			assert.parameterTypeIsString(definitionTerm)
+			assert.parameterTypeIsTable(definitions)
 			
 			add(writeXmlElement('dt', definitionTerm))
 			
@@ -206,8 +205,8 @@ end
 
 -- TODO: No use of <section>? Why?
 function Div(content, attributesTable)
-	assert.parameterIsString(content)
-	assert.parameterIsTable(attributesTable)
+	assert.parameterTypeIsString(content)
+	assert.parameterTypeIsTable(attributesTable)
 	
 	return writeXmlElement('div', content, attributesTable)
 end
@@ -217,7 +216,8 @@ function Blocksep()
 end
 
 function Str(rawText)
-	assert.parameterIsString(rawText)
+	assert.parameterTypeIsString(rawText)
+	
 	return writeText(rawText)
 end
 
@@ -226,32 +226,38 @@ function Space()
 end
 
 function Emph(phrasingContent)
-	assert.parameterIsString(phrasingContent)
+	assert.parameterTypeIsString(phrasingContent)
+	
 	return writeXmlElement('em', phrasingContent)
 end
 
 function Strong(phrasingContent)
-	assert.parameterIsString(phrasingContent)
+	assert.parameterTypeIsString(phrasingContent)
+	
 	return writeXmlElement('strong', phrasingContent)
 end
 
 function Strikeout(phrasingContent)
-	assert.parameterIsString(phrasingContent)
+	assert.parameterTypeIsString(phrasingContent)
+	
 	return writeXmlElement('del', phrasingContent)
 end
 
 function Subscript(phrasingContent)
-	assert.parameterIsString(phrasingContent)
+	assert.parameterTypeIsString(phrasingContent)
+	
 	return writeXmlElement('sub', phrasingContent)
 end
 
 function Superscript(phrasingContent)
-	assert.parameterIsString(phrasingContent)
+	assert.parameterTypeIsString(phrasingContent)
+	
 	return writeXmlElement('sup', phrasingContent)
 end
 
 function SmallCaps(phrasingContent)
-	assert.parameterIsString(phrasingContent)
+	assert.parameterTypeIsString(phrasingContent)
+	
 	-- was style = 'font-variant: small-caps;'  but this is longer than class="smallcaps"
 	return writeXmlElement('span', phrasingContent, {class = 'smallcaps'})
 end
@@ -259,26 +265,28 @@ end
 local singleOpeningQuoteUtf8 = '\226\128\152' -- LEFT SINGLE QUOTATION MARK, Unicode: U+2018, UTF-8: E2 80 98
 local singleClosingQuoteUtf8 = '\226\128\153' -- RIGHT SINGLE QUOTATION MARK, Unicode: U+2019, UTF-8: E2 80 99
 function SingleQuoted(phrasingContent)
-	assert.parameterIsString(phrasingContent)
+	assert.parameterTypeIsString(phrasingContent)
+	
 	return singleOpeningQuoteUtf8 .. phrasingContent .. singleClosingQuote
 end
 
 local doubleOpeningQuoteUtf8 = '\226\128\156' -- LEFT DOUBLE QUOTATION MARK, Unicode: U+201C, UTF-8: E2 80 9C
 local doubleClosingQuoteUtf8 = '\226\128\157' -- RIGHT DOUBLE QUOTATION MARK, Unicode: U+201D, UTF-8: E2 80 9D
 function DoubleQuoted(phrasingContent)
-	assert.parameterIsString(phrasingContent)
+	assert.parameterTypeIsString(phrasingContent)
+	
 	return doubleOpeningQuoteUtf8 .. phrasingContent .. doubleClosingQuote
 end
 
 function Cite(phrasingContent, citations)
-	assert.parameterIsString(phrasingContent)
-	assert.parameterIsTable(citations)
+	assert.parameterTypeIsString(phrasingContent)
+	assert.parameterTypeIsTable(citations)
 	
 	local identifiers = tablelize()
 	
 	-- Also .citationPrefix, .citationSuffix, .citationMode, .citationNoteNum, .citationHash
 	for _, citation in ipairs(citations) do
-		assert.parameterIsTable(citation)
+		assert.parameterTypeIsTable(citation)
 		identifiers:insert(citation.citationId)
 	end
 	
@@ -291,24 +299,27 @@ function Cite(phrasingContent, citations)
 end
 
 function Code(rawCodeString, attributesTable)
-	assert.parameterIsString(rawCodeString)
-	assert.parameterIsTable(attributesTable)
+	assert.parameterTypeIsString(rawCodeString)
+	assert.parameterTypeIsTable(attributesTable)
+	
 	return writeXmlElement('code', writeText(rawCodeString), attributesTable)
 end
 
 function DisplayMath(rawText)
-	assert.parameterIsString(rawText)
+	assert.parameterTypeIsString(rawText)
+	
 	return '\\[' .. writeText(rawText) .. '\\]'
 end
 
 function InlineMath(rawText)
-	assert.parameterIsString(rawText)
+	assert.parameterTypeIsString(rawText)
+	
 	return '\\(' .. writeText(rawText) .. '\\)'
 end
 
 function RawInline(format, content)
-	assert.parameterIsString(format)
-	assert.parameterIsString(content)
+	assert.parameterTypeIsString(format)
+	assert.parameterTypeIsString(content)
 	
 	if format == 'html' then
 		return content
@@ -322,9 +333,9 @@ function LineBreak()
 end
 
 function Link(phrasingContent, url, title)
-	assert.parameterIsString(phrasingContent)
-	assert.parameterIsString(url)
-	assert.parameterIsString(title)
+	assert.parameterTypeIsString(phrasingContent)
+	assert.parameterTypeIsString(url)
+	assert.parameterTypeIsString(title)
 	
 	return writeXmlElement('a', phrasingContent, {url = url, title = title})
 end
@@ -336,7 +347,7 @@ local unicodeLeftwardArrowWithHookInUtf8 = '\226\134\169'
 local footnoteIdentifierPrefix = 'fn'
 local footnoteReferenceIdentifierPrefix = footnoteIdentifierPrefix .. 'ref'
 function Note(phrasingContent)
-	assert.parameterIsString(phrasingContent)
+	assert.parameterTypeIsString(phrasingContent)
 	
 	local oneBasedFootnoteIndex = #footnotes + 1
 	
@@ -354,10 +365,8 @@ function Note(phrasingContent)
 end
 
 function Span(phrasingContent, attributesTable)
-	assert.parameterIsString(phrasingContent)
-	assert.parameterIsTable(attributesTable)
+	assert.parameterTypeIsString(phrasingContent)
+	assert.parameterTypeIsTable(attributesTable)
 	
 	return writeXmlElement('span', phrasingContent, attributesTable)
 end
-
-return module

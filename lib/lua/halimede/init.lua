@@ -296,7 +296,7 @@ function ourModule.dirname(path, folderSeparator)
 		local withTrailingSlash = path:gsub('(.*' .. regexSeparator .. ')(.*)', '%1')
 		return withTrailingSlash:sub(1, #withTrailingSlash - 1)
 	else
-		return './'
+		return '.'
 	end
 end
 local dirname = ourModule.dirname

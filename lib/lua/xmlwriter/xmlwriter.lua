@@ -19,7 +19,7 @@ alwaysEscapedCharacters = setmetatable(alwaysEscapedCharacters, {
 )
 
 function module.writeText(rawText)
-	assert.parameterIsString(rawText)
+	assert.parameterTypeIsString(rawText)
 	
 	return rawText:gsub('[<>&]', function(matchedCharacter)
 		return alwaysEscapedCharacters[matchedCharacter]
@@ -28,7 +28,7 @@ end
 local writeText = module.writeText
 
 local function writeAttributes(attributesTable)
-	assert.parameterIsTable(attributesTable)
+	assert.parameterTypeIsTable(attributesTable)
 	
 	local attributesArray = tabelize()
 
@@ -86,38 +86,37 @@ local function writeAttributes(attributesTable)
 end
 
 function module.writeXmlElementNameWithAttributes(elementName, attributesTable)
-	assert.parameterIsString(elementName)
-	assert.parameterIsTable(attributesTable)
+	assert.parameterTypeIsString(elementName)
+	assert.parameterTypeIsTable(attributesTable)
 	
 	return elementName .. writeAttributes(attributesTable)
 end
 local writeXmlElementNameWithAttributes = module.writeXmlElementNameWithAttributes
 
 function module.writeXmlElementOpenTag(elementNameOrElementNameWithAttributes)
-	assert.parameterIsString(elementNameOrElementNameWithAttributes)
+	assert.parameterTypeIsString(elementNameOrElementNameWithAttributes)
 	
 	return '<' .. elementNameOrElementNameWithAttributes .. '>'
 end
 local writeXmlElementOpenTag = module.writeXmlElementOpenTag
 
 function module.writeXmlElementCloseTag(elementNameOrElementNameWithAttributes)
-	assert.parameterIsString(elementNameOrElementNameWithAttributes)
+	assert.parameterTypeIsString(elementNameOrElementNameWithAttributes)
 	
 	return '</' .. elementNameOrElementNameWithAttributes .. '>'
 end
 local writeXmlElementCloseTag = module.writeXmlElementCloseTag
 
 function module.writeXmlElementEmptyTag(elementNameOrElementNameWithAttributes)
-	assert.parameterIsString(elementNameOrElementNameWithAttributes)
+	assert.parameterTypeIsString(elementNameOrElementNameWithAttributes)
 	
 	return '<' .. elementNameOrElementNameWithAttributes .. '/>'
 end
 local writeXmlElementEmptyTag = module.writeXmlElementEmptyTag
 
 function module.writeXmlElement(elementName, phrasingContent, optionalAttributesTable)
-	assert.parameterIsString(elementName)
-	assert.parameterIsString(phrasingContent)
-	assert.parameterIsTable(attributesTable)
+	assert.parameterTypeIsString(elementName)
+	assert.parameterTypeIsString(phrasingContent)
 	
 	local attributesTable
 	if optionalAttributesTable == nil then
