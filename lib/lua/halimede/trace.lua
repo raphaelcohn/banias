@@ -5,6 +5,7 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 
 
 local halimede = require('halimede')
+local type = require('halimede').type
 local assert = halimede.assert
 
 local function traceIfRequired()
@@ -12,27 +13,24 @@ local function traceIfRequired()
 	local environmentVariable = 'LUA_HALIMEDE_TRACE'
 	
 	-- Check for functions in the global namespace that we rely on that might have been removed in a sandbox; don't enable tracing if they're not present.
-	if not halimede.hasPackageChildFieldOfTypeString('os', 'getenv') then
+	if not type.hasPackageChildFieldOfTypeFunctionOrCall('os', 'getenv') then
 		return
 	end
 	
-	if not halimede.hasPackageChildFieldOfTypeString('debug', 'sethook', 'getinfo') then
+	if not type.hasPackageChildFieldOfTypeFunctionOrCall('debug', 'sethook', 'getinfo') then
 		return
 	end
 	
-	if not halimede.hasPackageChildFieldOfTypeString('string', 'format') then
+	if not type.hasPackageChildFieldOfTypeFunctionOrCall('string', 'format') then
 		return
 	end
 	
-	if not halimede.hasPackageChildFieldOfTypeString('io', 'stderr') then
+	if not type.hasPackageChildFieldOfTypeTableOrUserdata('io', 'stderr') then
 		return
 	end
 	
 	local write = io.stderr.write
-	if write == nil then
-		return
-	end
-	if type(write) ~= 'function' then
+	if not type.isFunctionOrCall(write) then
 		return
 	end
 	

@@ -17,19 +17,18 @@ package.loaded[''] = module
 modulesRootPath = ''
 
 
--- Embedded assert module (logically, assert.lua, but functionality is needed during load)
-
-local assertModule = {}
-package.loaded[ourModuleName .. '.assert'] = assertModule
-
+local function essentialGlobalMissingErrorMessage(globalName)
+	return "The essential global '" .. globalName .. "' is not present in the Lua environment")
+end
 
 -- Best efforts for failing if error is missing
 if error == nil then
+	local errorMessage = essentialGlobalMissingErrorMessage('error')
 	if assert ~= nil then
-		assert(false, "The global 'error' is not present in the Lua environment")
+		assert(false, errorMessage)
 	end
 	if print ~= nil then
-		print("The global 'error' is not present in the Lua environment")
+		print(errorMessage)
 	end
 	if os ~= nil then
 		if os.exit ~= nil then
@@ -39,9 +38,142 @@ if error == nil then
 	error("Calling non-existent error should cause the Lua environment to die")
 end
 
+
+-- Embedded type module (logically, type.lua, but functionality is needed during load)
+
 if type == nil then
-	error("The global 'type' is not present in the Lua environment")
+	error(essentialGlobalMissingErrorMessage('type'))
 end
+
+if setmetatable == nil then
+	error(essentialGlobalMissingErrorMessage('setmetatable'))
+end
+
+if getmetatable == nil then
+	error(essentialGlobalMissingErrorMessage('getmetatable'))
+end
+
+local typeModule = {}
+package.loaded[ourModuleName .. '.type'] = assertModule
+
+local function NamedFunction(name, functor)
+	return setmetatable({
+		name = name
+	}, {
+		__tostring = function()
+			return 'function:' .. name
+		end,
+		__call = function(table, ...)
+			return functor(...)
+		end
+	})
+end
+
+local function is(value, name)
+	return type(value) == name
+end
+
+local function simpleTypeObject(name)
+	return NamedFunction(name, function(...)
+		local values = {...}
+		for _, value in ipairs(values) do
+			if is(value, name) then
+				return true
+			end
+		end
+		return false
+	end)
+end
+
+typeModule.isNil = simpleTypeObject('nil')
+typeModule.isNumber = simpleTypeObject('number')
+typeModule.isString = simpleTypeObject('string')
+typeModule.isBoolean = simpleTypeObject('boolean')
+typeModule.isTable = simpleTypeObject('table')
+typeModule.isFunction = simpleTypeObject('function')
+typeModule.isThread = simpleTypeObject('thread')
+typeModule.isUserdata = simpleTypeObject('userdata')
+
+local function functionOrCallTypeObject()
+	return NamedFunction('function or _call', function(...)
+		local values = {...}
+		for _, value in ipairs(values) do
+			if is(value, 'function') then
+				return true
+			end
+			if is(getmetatable(value).__call, 'function') then
+				return true
+			end
+		end
+		return false
+	end)
+end
+typeModule.isFunctionOrCall = functionOrCallTypeObject()
+
+local function multipleTypesObject(name1, name2)
+	return NamedFunction(name1 .. ' or ' .. name2, function(...)
+		local values = {...}
+		for _, value in ipairs(values) do
+			if is(value, name1) then
+				return true
+			end
+			if is(value, name2) then
+				return true
+			end
+		end
+		return false
+	end)
+end
+typeModule.isTableOrUserdata = multipleTypesObject()
+
+function typeModule.hasPackageChildFieldOfType(isOfType, name, ...)
+	assert.parameterTypeIsTable(isOfType)
+	assert.parameterTypeIsString(name)
+	
+	local package = _G[name]
+	if not typeModule.isTable(package) then
+		return false
+	end
+	
+	local package = _G[name]
+	
+	local childFieldNames = {...}
+	for _, childFieldName in ipairs(childFieldNames) do
+		assertModule.parameterTypeIsString(childFieldName)
+		
+		local value = package[childFieldName]
+		if not isOfType(value) then
+			return false
+		end
+	end
+	
+	return true
+end
+
+function typeModule.hasPackageChildFieldOfTypeString(name, ...)
+	return typeModule.hasPackageChildFieldOfType(typeModule.isString, name, ...)
+end
+
+function typeModule.hasPackageChildFieldOfTypeFunctionOrCall(name, ...)
+	return typeModule.hasPackageChildFieldOfType(typeModule.isFunctionOrCall, name, ...)
+end
+
+function typeModule.hasPackageChildFieldOfTypeTableOrUserdata(name, ...)
+	return typeModule.hasPackageChildFieldOfType(typeModule.isTableOrUserdata, name, ...)
+end
+
+
+local type = typeModule
+ourModule.type = type
+
+
+
+
+-- Embedded assert module (logically, assert.lua, but functionality is needed during load)
+
+local assertModule = {}
+package.loaded[ourModuleName .. '.assert'] = assertModule
+
 
 -- Guard for presence of global assert
 if assert == nil then
@@ -66,7 +198,7 @@ function assertModule.withLevel(booleanResult, message, level)
 	end
 	
 	local errorMessage
-	if ourModule.hasPackageChildFieldOfTypeFunction('debug', 'traceback') then
+	if typeModule.hasPackageChildFieldOfTypeFunctionOrCall('debug', 'traceback') then
 		errorMessage = debug.traceback(message, level)
 	else
 		errorMessage = message
@@ -76,48 +208,55 @@ function assertModule.withLevel(booleanResult, message, level)
 end
 local withLevel = assertModule.withLevel
 
-local function parameterTypeIs(value, expectation)
-	withLevel(type(value) == expectation, "Parameter is not a " .. expectation, 4)
+local function parameterTypeIs(value, isOfType)
+	withLevel(isOfType(value), "Parameter is not a " .. isOfType.name, 4)
 end
 
 -- Would be a bit odd to use this
 function assertModule.parameterTypeIsNil(value)
-	assertModule.parameterTypeIs(value, 'nil')
+	assertModule.parameterTypeIs(value, typeModule.isNil)
 end
 
 function assertModule.parameterTypeIsNumber(value)
-	return parameterTypeIs(value, 'number')
+	return parameterTypeIs(value, typeModule.isNumber)
 end
 
 function assertModule.parameterTypeIsString(value)
-	return parameterTypeIs(value, 'string')
+	return parameterTypeIs(value, typeModule.isString)
 end
 
 function assertModule.parameterTypeIsFunction(value)
-	return parameterTypeIs(value, 'boolean')
+	return parameterTypeIs(value, typeModule.isBoolean)
 end
 
 function assertModule.parameterTypeIsTable(value)
-	return parameterTypeIs(value, 'table')
+	return parameterTypeIs(value, typeModule.isTable)
 end
 
 function assertModule.parameterTypeIsFunction(value)
-	return parameterTypeIs(value, 'function')
+	return parameterTypeIs(value, typeModule.isFunction)
 end
 
 function assertModule.parameterTypeIsThread(value)
-	return parameterTypeIs(value, 'thread')
+	return parameterTypeIs(value, typeModule.isThread)
 end
 
 function assertModule.parameterTypeIsUserdata(value)
-	return parameterTypeIs(value, 'userdata')
+	return parameterTypeIs(value, typeModule.isUserdata)
 end
 
-local function globalTypeIs(expectation, ...)
-	assertModule.parameterTypeIsString(expectation)
+function assertModule.parameterTypeIsFunctionOrCall(value)
+	return parameterTypeIs(value, typeModule.isFunctionOrCall)
+end
+
+function assertModule.parameterTypeIsTableOrUserdata(value)
+	return parameterTypeIs(value, typeModule.isTableOrUserdata)
+end
+
+local function globalTypeIs(isOfType, ...)
 
 	if _G == nil then
-		error("Global environment '_G' is not present", 3)
+		error(essentialGlobalMissingErrorMessage('_G'), 3)
 	end
 	
 	-- We do not use ipairs() as we may be checking for its existence!
@@ -129,29 +268,26 @@ local function globalTypeIs(expectation, ...)
 		assertModule.parameterTypeIsString(name)
 		
 		local global = _G[name]
-		local qualifiedName = "The global '" .. name .. "'"
-		withLevel(global ~= nil, qualifiedName .. " is not present in the Lua environment", 4)
-		withLevel(type(global) == expectation, qualifiedName .. " is not a " .. expectation, 4)
+		withLevel(global ~= nil, essentialGlobalMissingErrorMessage(name), 4)
+		withLevel(isOfType(global), "The global '" .. name .. "'" .. " is not a " .. isOfType.name, 4)
 		
 		index = index + 1
 	end
 end
 
 function assertModule.globalTypeIsTable(...)
-	return globalTypeIs('table', ...)
+	return globalTypeIs(typeModule.isTable, ...)
 end
 
 function assertModule.globalTypeIsFunction(...)
-	return globalTypeIs('function', ...)
+	return globalTypeIs(typeModule.isFunction, ...)
 end
 
 function assertModule.globalTypeIsString(...)
-	return globalTypeIs('string', ...)
+	return globalTypeIs(typeModule.isString, ...)
 end
 
-local function globalTableHasChieldFieldOfType(expectation, name, ...)
-	assertModule.parameterTypeIsString(expectation)
-	assertModule.parameterTypeIsString(name)
+local function globalTableHasChieldFieldOfType(isOfType, name, ...)
 	
 	assertModule.globalTypeIsTable(name)
 	
@@ -163,21 +299,21 @@ local function globalTableHasChieldFieldOfType(expectation, name, ...)
 		
 		local childField = package[childFieldName]
 		local qualifiedChildFieldName = "The global '" .. name .. '.' .. childFieldName .. "'"
-		withLevel(childField ~= nil, qualifiedChildFieldName .. " is not present in the Lua environment", 4)
-		withLevel(type(childField) == expectation, qualifiedChildFieldName .. " is not a " .. expectation, 4)
+		withLevel(childField ~= nil, essentialGlobalMissingErrorMessage(name .. '.' .. childFieldName), 4)
+		withLevel(isOfType(childField), qualifiedChildFieldName .. " is not a " .. isOfType.name, 4)
 	end
 end
 
-function assertModule.globalTableHasChieldFieldOfTypeString(name, ...)
-	return globalTableHasChieldFieldOfType('string', name, ...)
-end
-
 function assertModule.globalTableHasChieldFieldOfTypeTable(name, ...)
-	return globalTableHasChieldFieldOfType('table', name, ...)
+	return globalTableHasChieldFieldOfType(typeModule.isTable, ...)
 end
 
 function assertModule.globalTableHasChieldFieldOfTypeFunction(name, ...)
-	return globalTableHasChieldFieldOfType('function', name, ...)
+	return globalTableHasChieldFieldOfType(typeModule.isFunction, name, ...)
+end
+
+function assertModule.globalTableHasChieldFieldOfTypeString(name, ...)
+	return globalTableHasChieldFieldOfType(typeModule.isString, name, ...)
 end
 
 assertModule.globalTypeIsFunction(
@@ -202,45 +338,8 @@ assertModule.globalTypeIsTable(
 local assert = assertModule
 ourModule.assert = assert
 
-function ourModule.hasPackageChildFieldOfType(expectation, name, ...)
-	assert.parameterTypeIsString(expectation)
-	assert.parameterTypeIsString(name)
-	
-	local package = _G[name]
-	if package == nil then
-		return false
-	end
-	
-	if type(package) ~= 'table' then
-		return false
-	end
-	
-	local package = _G[name]
-	
-	local childFieldNames = {...}
-	for _, childFieldName in ipairs(childFieldNames) do
-		assertModule.parameterTypeIsString(childFieldName)
-		
-		local value = package[childFieldName]
-		if value == nil then
-			return false
-		end
-		
-		if type(value) ~= expectation then
-			return false
-		end
-	end
-	
-	return true
-end
 
-function ourModule.hasPackageChildFieldOfTypeFunction(name, ...)
-	return ourModule.hasPackageChildFieldOfType('function', name, ...)
-end
 
-function ourModule.hasPackageChildFieldOfTypeString(name, ...)
-	return ourModule.hasPackageChildFieldOfType('string', name, ...)
-end
 
 assert.globalTableHasChieldFieldOfTypeFunction('table', 'insert')
 assert.globalTableHasChieldFieldOfTypeFunction('string', 'find', 'sub')
@@ -313,10 +412,10 @@ local dirname = ourModule.dirname
 
 assert.globalTableHasChieldFieldOfTypeFunction('string', 'sub')
 function ourModule.findArg0()
-	if type(arg) == 'table' and type(arg[0]) == 'string' then
+	if typeModule.isTable(arg) and typeModule.isString(arg[0]) then
 		return arg[0]
 	else
-		if ourModule.hasPackageChildFieldOfTypeFunction('debug', 'getinfo') then
+		if typeModule.hasPackageChildFieldOfTypeFunctionOrCall('debug', 'getinfo') then
 			-- May not be a path, could be compiled C code, etc
 			local withLeadingAt = debug.getinfo(initialisePackageConfiguration, 'S').source
 			return withLeadingAt:sub(2)
@@ -356,7 +455,7 @@ local function determineLuaLibraryFileExtension(folderSeparator)
 	local dylib = 'dylib'
 	
 	-- Running under LuaJIT makes life so much easier
-	if ourModule.hasPackageChildFieldOfTypeString('jit', 'os') then
+	if type.hasPackageChildFieldOfTypeString('jit', 'os') then
 		
 		local knownOperatingSystemsMapping = setmetatable({
 			Windows = dll,
@@ -485,14 +584,14 @@ local function usefulRequire(moduleNameLocal, loaded, searchers, folderSeparator
 	for _, searcher in ipairs(searchers) do
 		-- filePath only in Lua 5.2+, and not set by the preload searcher
 		local moduleLoaderOrFailedToFindExplanationString, filePath = searcher(moduleNameLocal)
-		if type(moduleLoaderOrFailedToFindExplanationString) == 'function' then
+		if typeModule.isFunction(moduleLoaderOrFailedToFindExplanationString) then
 			local result = moduleLoaderOrFailedToFindExplanationString()
 		
 			local ourResult
 			if result == nil then
 				ourResult = module
 			else
-				if type(result) == 'table' then
+				if typeModule.isTable(result) then
 					ourResult = result
 				else
 					ourResult = {result}

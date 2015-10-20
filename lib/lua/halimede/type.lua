@@ -4,18 +4,6 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 ]]--
 
 
-local assert = require('halimede.assert')
-local io = require('halimede.io')
+-- This module is a little unusual; most of its functionality is actually contained in halimede.lua. This is because it is needed during halimede's loading; halimede is needed to load modules, and so a circular dependency comes into being.
 
-
-function module.loadRockSpec(rockSpecFilePath)
-	
-	assert.parameterTypeIsString(rockSpecFilePath)
-	
-	local fileHandle = io.openTextModeForReading('rockspec file', rockSpecFilePath)
-	
-	-- need to create an environment
-	local environment = {}
-	
-	fileHandle:close()
-end
+local halimede = require('halimede')
