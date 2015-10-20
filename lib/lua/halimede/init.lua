@@ -18,7 +18,7 @@ modulesRootPath = ''
 
 
 local function essentialGlobalMissingErrorMessage(globalName)
-	return "The essential global '" .. globalName .. "' is not present in the Lua environment")
+	return "The essential global '" .. globalName .. "' is not present in the Lua environment"
 end
 
 -- Best efforts for failing if error is missing
@@ -40,6 +40,10 @@ end
 
 
 -- Embedded type module (logically, type.lua, but functionality is needed during load)
+-- Embedded assert module (logically, assert.lua, but functionality is needed during load)
+
+local assertModule = {}
+package.loaded[ourModuleName .. '.assert'] = assertModule
 
 if type == nil then
 	error(essentialGlobalMissingErrorMessage('type'))
@@ -124,11 +128,11 @@ local function multipleTypesObject(name1, name2)
 		return false
 	end)
 end
-typeModule.isTableOrUserdata = multipleTypesObject()
+typeModule.isTableOrUserdata = multipleTypesObject('table', 'userdata')
 
 function typeModule.hasPackageChildFieldOfType(isOfType, name, ...)
-	assert.parameterTypeIsTable(isOfType)
-	assert.parameterTypeIsString(name)
+	assertModule.parameterTypeIsTable(isOfType)
+	assertModule.parameterTypeIsString(name)
 	
 	local package = _G[name]
 	if not typeModule.isTable(package) then
@@ -169,10 +173,6 @@ ourModule.type = type
 
 
 
--- Embedded assert module (logically, assert.lua, but functionality is needed during load)
-
-local assertModule = {}
-package.loaded[ourModuleName .. '.assert'] = assertModule
 
 
 -- Guard for presence of global assert
@@ -288,7 +288,6 @@ function assertModule.globalTypeIsString(...)
 end
 
 local function globalTableHasChieldFieldOfType(isOfType, name, ...)
-	
 	assertModule.globalTypeIsTable(name)
 	
 	local package = _G[name]
@@ -305,7 +304,7 @@ local function globalTableHasChieldFieldOfType(isOfType, name, ...)
 end
 
 function assertModule.globalTableHasChieldFieldOfTypeTable(name, ...)
-	return globalTableHasChieldFieldOfType(typeModule.isTable, ...)
+	return globalTableHasChieldFieldOfType(typeModule.isTable, name, ...)
 end
 
 function assertModule.globalTableHasChieldFieldOfTypeFunction(name, ...)
@@ -322,6 +321,7 @@ assertModule.globalTypeIsFunction(
 	'ipairs',
 	'pairs',
 	'pcall',
+	'select',
 	'setmetatable',
 	'type',
 	'unpack',
@@ -340,11 +340,12 @@ ourModule.assert = assert
 
 
 
-
 assert.globalTableHasChieldFieldOfTypeFunction('table', 'insert')
 assert.globalTableHasChieldFieldOfTypeFunction('string', 'find', 'sub')
 function string.split(value, separator)
-
+	assert.parameterTypeIsString(value)
+	assert.parameterTypeIsString(separator)
+	
 	local result = {}
 	local length = value:len()
 	
