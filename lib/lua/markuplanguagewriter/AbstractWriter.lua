@@ -19,23 +19,21 @@ alwaysEscapedCharacters = setmetatable(alwaysEscapedCharacters, {
 	}
 )
 
-assert.globalTypeIsFunction('setmetatable')
-function module:new(state)
-	local newObject
-	if state == nil then
-		newObject = {}
-	else
-		assert.parameterTypeIsTable(state)
-		newObject = state
-	end
+local AbstractWriter = {}
+
+function AbstractWriter:new(_constructAttribute)
+	local this = {_constructAttribute = _constructAttribute}
 	
-	-- self will be 'Writer'
-	setmetatable(newObject, self)
-	self.__index = self
-	return newObject
+	setmetatable(this, {
+		__index = self
+	})
+	
+	--setmetatable(this, self)
+	--self.__index = self
+	return this
 end
 
-function module:writeText(rawText)
+function AbstractWriter:writeText(rawText)
 	assert.parameterTypeIsString(rawText)
 	
 	return rawText:gsub('[<>&]', function(matchedCharacter)
@@ -43,11 +41,11 @@ function module:writeText(rawText)
 	end)
 end
 
-function module:_constructAttribute(attributesArray, attributeName, attributeValue)
+function AbstractWriter:_constructAttribute(attributesArray, attributeName, attributeValue)
 	error("Abstract method")
 end
 
-function module:_writeAttributes(attributesTable)
+function AbstractWriter:_writeAttributes(attributesTable)
 	local attributesArray = tabelize()
 
 	for attributeName, attributeValue in pairs(attributesTable) do
@@ -62,32 +60,32 @@ function module:_writeAttributes(attributesTable)
 	return attributesArray:concat()
 end
 
-function module:writeElementNameWithAttributes(elementName, attributesTable)
+function AbstractWriter:writeElementNameWithAttributes(elementName, attributesTable)
 	assert.parameterTypeIsString(elementName)
 	assert.parameterTypeIsTable(attributesTable)
 	
 	return elementName .. self._writeAttributes(attributesTable)
 end
 
-function module:writeElementOpenTag(elementNameOrElementNameWithAttributes)
+function AbstractWriter:writeElementOpenTag(elementNameOrElementNameWithAttributes)
 	assert.parameterTypeIsString(elementNameOrElementNameWithAttributes)
 	
 	return '<' .. elementNameOrElementNameWithAttributes .. '>'
 end
 
-function module:writeElementEmptyTag(elementNameOrElementNameWithAttributes)
+function AbstractWriter:writeElementEmptyTag(elementNameOrElementNameWithAttributes)
 	assert.parameterTypeIsString(elementNameOrElementNameWithAttributes)
 	
 	return '<' .. elementNameOrElementNameWithAttributes .. '/>'
 end
 
-function module:writeElementCloseTag(elementName)
+function AbstractWriter:writeElementCloseTag(elementName)
 	assert.parameterTypeIsString(elementName)
 	
 	return '</' .. elementName .. '>'
 end
 
-function module:writeElement(elementName, phrasingContent, optionalAttributesTable)
+function AbstractWriter:writeElement(elementName, phrasingContent, optionalAttributesTable)
 	assert.parameterTypeIsString(elementName)
 	assert.parameterTypeIsString(phrasingContent)
 	
@@ -104,3 +102,5 @@ function module:writeElement(elementName, phrasingContent, optionalAttributesTab
 	end
 	return self.writeElementOpenTag(element) .. phrasingContent .. self.writeElementCloseTag(elementName)
 end
+
+return AbstractWriter

@@ -7,7 +7,7 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 local shell = require('halimede.shell').shell
 local tabelize = require('halimede.tabelize').tabelize
 
-local HtmlWriter = require('markuplanguagewriter.htmlwriter')
+local HtmlWriter = require('markuplanguagewriter.HtmlWriter')
 local writeText = HtmlWriter.writeText
 local writeElementNameWithAttributes = HtmlWriter.writeElementNameWithAttributes
 local writeElementOpenTag = HtmlWriter.writeElementOpenTag

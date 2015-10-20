@@ -6,10 +6,9 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 
 local tabelize = require('halimede.tabelize').tabelize
 local assert = require('halimede.assert')
-local AbstractWriter = requireSibling('AbstractWriter')
+local Writer = requireSibling('Writer')
 
-module = AbstractWriter:new()
-function module:constructAttribute(attributesArray, attributeName, attributeValue)
+local function _constructAttribute(alwaysEscapedCharacters, attributesArray, attributeName, attributeValue)
 	
 	local quotationMark = '"'
 	local doubleQuotesPresent = false
@@ -53,3 +52,5 @@ function module:constructAttribute(attributesArray, attributeName, attributeValu
 	
 	attributesArray:insert(' ' .. attributeName .. '=' .. quotationMark .. escapedAttributeValue .. quotationMark)
 end
+
+return Writer.new(_constructAttribute)

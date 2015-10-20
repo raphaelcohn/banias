@@ -6,10 +6,10 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 
 local tabelize = require('halimede.tabelize').tabelize
 local assert = require('halimede.assert')
-local XmlWriter = requireSibling('xmlwriter')
+local Writer = requireSibling('Writer')
+local XmlWriter = requireSibling('XmlWriter')
 
-module = XmlWriter:new()
-function module:constructAttribute(attributesArray, attributeName, attributeValue)
+local function _constructAttribute(alwaysEscapedCharacters, attributesArray, attributeName, attributeValue)
 	if attributeValue == '' then
 		return
 	end
@@ -20,5 +20,8 @@ function module:constructAttribute(attributesArray, attributeName, attributeValu
 		return
 	end
 	
-	return XmlWriter.constructAttribute(self, attributesArray, attributeName, attributeValue)
+	-- Dirty; operates on a different instance
+	return XmlWriter._constructAttribute(alwaysEscapedCharacters, attributesArray, attributeName, attributeValue)
 end
+
+return Writer.new(_constructAttribute)
