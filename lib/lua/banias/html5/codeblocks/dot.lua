@@ -13,10 +13,10 @@ local writeElementCloseTag = Html5Writer.writeElementCloseTag
 local writeElement = Html5Writer.writeElement
 
 local assert = require('halimede.assert')
-local shell = require('halimede.shell').shell
-local tabelize = require('halimede.shell').tabelize
+local executeInShellAndReadAllFromStandardIn = require('halimede.io.shell').executeInShellAndReadAllFromStandardIn
+local tabelize = require('halimede.tabelize').tabelize
 
-local halimedeIo = require('halimede.io')
+local halimedeIo = require('halimede.io.temporaryWrite')
 
 -- Runs dot then base64 on 'rawCodeString' to produce a base64-encoded png in a data: URL
 -- Added to retain compatibility with JGM's Pandoc
@@ -28,11 +28,11 @@ parentModule.register(leafModuleName, function(rawCodeString, attributesTable)
 		
 		local commandlineArguments = tabelize({...})
 		
-		halimedeIo.writeToTemporaryFileAllContentsInTextModeAndUse(outputBytes, function(temporaryFileContainingOutputBytes)
+		halimedeIo.toTemporaryFileAllContentsInTextModeAndUse(outputBytes, function(temporaryFileContainingOutputBytes)
 			assert.parameterTypeIsString(temporaryFileContainingOutputBytes)
 			
 			commandLineArguments:insert(temporaryFileContainingOutputBytes)
-			return shell(unpack(commandlineArguments))
+			return executeInShellAndReadAllFromStandardIn(unpack(commandlineArguments))
 		end)
 	end
 	

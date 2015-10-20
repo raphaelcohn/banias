@@ -4,17 +4,22 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 ]]--
 
 
-local exception = requireSibling('exception')
-local toShellCommand = requireSibling('toShellCommand').toShellCommand
+local assert = require('halimede.assert')
+local tabelize = require('halimede.tabelize').tabelize
 
 
-assert.globalTableHasChieldFieldOfTypeFunction('os', 'execute')
-function module.execute(...)
-	local command = toShellCommand(...)
-	return os.execute(command)
-end
-
-assert.globalTableHasChieldFieldOfTypeFunction('os', 'execute')
-function module.shellIsAvailable()
-	return os.execute()
+assert.globalTableHasChieldFieldOfTypeFunction('string', 'gsub')
+function module.toShellCommand(...)
+	
+	local arguments = {...}
+	
+	local commandBuffer = tabelize()
+	
+	for _, argument in ipairs(arguments) do
+		assert.parameterTypeIsString(argument)
+		commandBuffer:insert("'" .. argument:gsub("'", "''") .. "'")
+	end
+	
+	local command = commandBuffer:concat(' ')
+	return command
 end
