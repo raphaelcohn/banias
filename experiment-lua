@@ -12,7 +12,7 @@ _program_rootPath="$(pwd)"
 _program_modulesPath="$_program_rootPath"/lib/pallene/modules
 _program_baniasModulePath="$_program_modulesPath"/banias
 _program_baniasWriter='html5'
-_program_template="$_program_baniasModulePath"/"$_program_baniasWriter"/template.html
+_program_template="$_program_baniasModulePath"/writers/"$_program_baniasWriter"/template.html
 _program_inputPath="$_program_rootPath"/experiment/input
 _program_outputPath="$_program_rootPath"/experiment/output
 
