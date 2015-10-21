@@ -30,4 +30,4 @@ cd "$_program_inputPath" 1>/dev/null
 LUA_PATH="$_program_modulesPath/?.lua;$_program_modulesPath/?/init.lua" \
 LUA_CPATH="$_program_modulesPath/?.so;$_program_modulesPath/?/init.so" \
 LUA_HALIMEDE_TRACE='false' \
-LUA_BANIAS_WRITER="$_program_baniasWriter" "$@" "$_program_baniasModulePath"/init.lua -o "$_program_outputPath"/"$_program_baniasWriter".lua.html "$_program_baniasWriter".md
+LUA_BANIAS_WRITER="$_program_baniasWriter" "$@" "$_program_baniasModulePath"/writers/init.lua -o "$_program_outputPath"/"$_program_baniasWriter".lua.html "$_program_baniasWriter".md
