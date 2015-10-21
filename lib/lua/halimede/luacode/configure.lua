@@ -169,5 +169,5 @@ function module.load(fileDescription, filePath, sandboxEnvironmentToPreserve, de
 	assert.parameterTypeIsTable(mutableInitialEnvironmentState)
 	
 	local environment = wrapWithMultipleInheritanceProxy(mutableInitialEnvironmentState, wrapWithReadOnlyProxy(defaultConfigurationToPreserve), wrapWithReadOnlyProxy(sandboxEnvironmentToPreserve))
-	return executeFromFile('rockspec file', rockSpecFilePath, environment), environment
+	return executeFromFile(fileDescription, filePath, environment), environment
 end

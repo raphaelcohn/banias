@@ -391,9 +391,10 @@ ourModule.packageConfiguration = initialisePackageConfiguration(package.config)
 local packageConfiguration = ourModule.packageConfiguration
 
 assert.globalTableHasChieldFieldOfTypeFunction('string', 'match', 'gsub', 'sub')
-function ourModule.dirname(path, folderSeparator)
+function ourModule.dirname(path)
 	assert.parameterTypeIsString(path)
-	assert.parameterTypeIsString(folderSeparator)
+	
+	local folderSeparator = packageConfiguration.folderSeparator
 	
 	local regexSeparator
 	if folderSeparator == '\\' then
@@ -446,7 +447,7 @@ local concatenateToPath = ourModule.concatenateToPath
 
 -- Ideally, we need to use realpath to resolve symlinks
 local function findOurFolderPath()
-	return dirname(findArg0(), packageConfiguration.folderSeparator)
+	return dirname(findArg0())
 end
 
 local function determineLuaLibraryFileExtension(folderSeparator)

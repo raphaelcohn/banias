@@ -35,24 +35,11 @@ local platformOverrideNames = {
 	'hooks'
 }
 
-local function applyPlatformOverride(tableToOverride)
-	
-end
-
-function module.choosePlatformOverridesInOrder()
-	
-end
-
-function module.loadRockSpec(rockSpecFilePath, operatingSystem)
-	assert.parameterTypeIsString(rockSpecFilePath)
-	assert.parameterTypeIsString(operatingSystem)
-	
-	local chunkResult, rockspec = configure.load('rockspec file', rockSpecFilePath, {}, {}, configure.sandboxEnvironmentToPreserve)
-	
-	-- eg rockspec.build.platforms.unix.* merges with rockspec.build.* 
+local function applyPlatformOverrides(rockspec, operatingSystem)
 	
 	local platformsInOrder = platformsInOrderBySystem[operatingSystem]
 	
+	-- eg rockspec.build.platforms.unix.* merges with rockspec.build.* 
 	for _, platformOverrideName in ipairs(platformOverrideNames) do
 		
 		local subRockspec = rockspec[platformOverrideName]
@@ -76,4 +63,14 @@ function module.loadRockSpec(rockSpecFilePath, operatingSystem)
 			
 		end
 	end
+end
+
+function module.loadRockspec(rockspecFilePath, operatingSystem)
+	assert.parameterTypeIsString(rockspecFilePath)
+	assert.parameterTypeIsString(operatingSystem)
+	
+	local chunkResult, rockspec = configure.load('rockspec file', rockspecFilePath, {}, {}, configure.sandboxEnvironmentToPreserve)
+	applyPlatformOverrides(rockspec, operatingSystem)
+	
+	return rockspec
 end
