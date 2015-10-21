@@ -4,8 +4,8 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 ]]--
 
 
-local exception = require('halimede.exception')
 local assert = require('halimede').assert
+local exception = require('halimede.exception')
 
 
 assert.globalTableHasChieldFieldOfTypeFunction('os', 'getenv')

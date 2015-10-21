@@ -11,20 +11,23 @@ cd "$(dirname "$0")" 1>/dev/null
 _program_rootPath="$(pwd)"
 _program_modulesPath="$_program_rootPath"/lib/pallene/modules
 _program_baniasModulePath="$_program_modulesPath"/banias
-_program_template="$_program_baniasModulePath"/html5/template.html
+_program_baniasWriter='html5'
+_program_template="$_program_baniasModulePath"/"$_program_baniasWriter"/template.html
 _program_inputPath="$_program_rootPath"/experiment/input
 _program_outputPath="$_program_rootPath"/experiment/output
 
-mkdir -m 0755 "$_program_outputPath"
+rm -rf "$_program_outputPath"
+mkdir -m 0755 -p "$_program_outputPath"
 
 set -- pandoc --smart --toc --template "$_program_template" --to
 
 # Done so we can find images, etc, relative to the location of the markdown file
 cd "$_program_inputPath" 1>/dev/null
 
-"$@" html5 -o "$_program_outputPath"/html5.orig.html html5.md
+"$@" html5 -o "$_program_outputPath"/"$_program_baniasWriter".orig.html "$_program_baniasWriter".md
 
-#export LUA_PATH="$path/?.lua;$path/?/init.lua"
-#export LUA_CPATH="$path/?.so;$path/?/init.so"
+# Path separators don't reflect what what Lua was compiled with inside Pandoc
+LUA_PATH="$_program_modulesPath/?.lua;$_program_modulesPath/?/init.lua" \
+LUA_CPATH="$_program_modulesPath/?.so;$_program_modulesPath/?/init.so" \
 LUA_HALIMEDE_TRACE='false' \
-PANDOC_LUA_BANIAS_WRITER='html5' "$@" "$_program_baniasModulePath"/pandocwriter.lua -o "$_program_outputPath"/html5.lua.html html5.md
+PANDOC_LUA_BANIAS_WRITER="$_program_baniasWriter" "$@" "$_program_baniasModulePath"/init.lua -o "$_program_outputPath"/"$_program_baniasWriter".lua.html "$_program_baniasWriter".md
