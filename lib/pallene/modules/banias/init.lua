@@ -11,7 +11,7 @@ local exception = require('halimede.exception')
 assert.globalTableHasChieldFieldOfTypeFunction('os', 'getenv')
 assert.globalTypeIsFunction('require')
 local function loadWriter()
-	local environmentVariable = 'PANDOC_LUA_BANIAS_WRITER'
+	local environmentVariable = 'LUA_BANIAS_WRITER'
 	local writer = os.getenv(environmentVariable)
 	if writer == nil then
 		exception.throw("The environment variable '%s' is not set", environmentVariable)
