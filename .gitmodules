@@ -7,12 +7,12 @@
 [submodule "lib/shellfire/configure"]
 	path = lib/shellfire/configure
 	url = https://github.com/shellfire-dev/configure.git
-[submodule "lib/lua/halimede"]
-	path = lib/lua/halimede
+[submodule "lib/pallene/modules/halimede"]
+	path = lib/pallene/modules/halimede
 	url = https://github.com/pallene/halimede.git
-[submodule "lib/lua/imaginarium"]
-	path = lib/lua/imaginarium
+[submodule "lib/pallene/modules/imaginarium"]
+	path = lib/pallene/modules/imaginarium
 	url = https://github.com/pallene/imaginarium.git
-[submodule "lib/lua/markuplanguagewriter"]
-	path = lib/lua/markuplanguagewriter
+[submodule "lib/pallene/modules/markuplanguagewriter"]
+	path = lib/pallene/modules/markuplanguagewriter
 	url = https://github.com/pallene/markuplanguagewriter.git
