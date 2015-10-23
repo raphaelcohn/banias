@@ -14,7 +14,7 @@ local writeElement = Html5Writer.writeElement
 
 local assert = require('halimede.assert')
 local executeInShellAndReadAllFromStandardIn = require('halimede.io.shell').executeInShellAndReadAllFromStandardIn
-local shellLanguage = require('halimede.ShellLanguage').Default
+local shellLanguage = require('halimede.io.ShellLanguage').Default
 local tabelize = require('halimede.tabelize').tabelize
 
 local halimedeIo = require('halimede.io.temporaryWrite')
@@ -33,6 +33,7 @@ parentModule.register(leafModuleName, function(rawCodeString, attributesTable)
 			assert.parameterTypeIsString(temporaryFileContainingOutputBytes)
 			
 			commandLineArguments:insert(temporaryFileContainingOutputBytes)
+			commandLineArguments:insert(shellLanguage.silenceStandardError)
 			return executeInShellAndReadAllFromStandardIn(shellLanguage, unpack(commandlineArguments))
 		end)
 	end
