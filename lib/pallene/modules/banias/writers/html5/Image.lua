@@ -5,6 +5,7 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 
 
 local executeInShellAndReadAllFromStandardIn = require('halimede.io.shell').executeInShellAndReadAllFromStandardIn
+local shellLanguage = require('halimede.ShellLanguage').Default
 local tabelize = require('halimede.tabelize').tabelize
 
 local Html5Writer = require('markuplanguagewriter.Html5Writer')
@@ -55,7 +56,7 @@ function Image(altText, url, titleWithoutSmartQuotes)
 	-- TODO: Check if jpeg using file xxx, may be it's a PNG or GIF
 	-- TODO: Test converting to PNG or GIF for smaller sizes
 	-- TODO: Don't base64 encode unless necessary
-	local line = executeInShellAndReadAllFromStandardIn('jpeginfo', '--info', '--lsstyle', url)
+	local line = executeInShellAndReadAllFromStandardIn(shellLanguage, 'jpeginfo', '--info', '--lsstyle', url)
 	local index = 1
 	local jpegInfo = {}
 	for fragment in line:gmatch('([^ ]+)') do
