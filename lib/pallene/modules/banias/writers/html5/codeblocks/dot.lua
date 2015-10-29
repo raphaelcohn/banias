@@ -15,7 +15,7 @@ local writeElement = Html5Writer.writeElement
 local assert = require('halimede.assert')
 local executeInShellAndReadAllFromStandardIn = require('halimede.io.shell').executeInShellAndReadAllFromStandardIn
 local shellLanguage = require('halimede.io.ShellLanguage').Default
-local tabelize = require('halimede.tabelize').tabelize
+local tabelize = require('halimede.table.tabelize').tabelize
 
 local halimedeIo = require('halimede.io.temporaryWrite')
 

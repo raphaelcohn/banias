@@ -14,7 +14,7 @@ local writeElement = Html5Writer.writeElement
 
 local assert = require('halimede.assert')
 
-local tabelize = require('halimede.tabelize').tabelize
+local tabelize = require('halimede.table.tabelize').tabelize
 
 local exception = require('halimede.exception')
 

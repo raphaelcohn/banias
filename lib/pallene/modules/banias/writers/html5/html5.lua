@@ -4,7 +4,7 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 ]]--
 
 
-local tabelize = require('halimede.tabelize').tabelize
+local tabelize = require('halimede.table.tabelize').tabelize
 
 local Html5Writer = require('markuplanguagewriter.Html5Writer')
 local writeText = Html5Writer.writeText

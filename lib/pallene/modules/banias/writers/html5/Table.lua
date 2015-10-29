@@ -14,7 +14,7 @@ local writeElement = Html5Writer.writeElement
 
 local assert = require('halimede.assert')
 
-local tabelize = require('halimede.tabelize').tabelize
+local tabelize = require('halimede.table.tabelize').tabelize
 
 -- Or use style="text-align:VALUE;" Or use class="align-VALUE"
 local defaultHtmlAlignment = 'left'
