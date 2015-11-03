@@ -29,7 +29,7 @@ parentModule.register(leafModuleName, function(rawCodeString, attributesTable)
 		
 		local commandlineArguments = tabelize({...})
 		
-		halimedeIo.toTemporaryFileAllContentsInTextModeAndUse(outputBytes, function(temporaryFileContainingOutputBytes)
+		halimedeIo.toTemporaryFileAllContentsInTextModeAndUse(outputBytes, shellLanguage.shellScriptFileExtensionIncludingLeadingPeriod, function(temporaryFileContainingOutputBytes)
 			assert.parameterTypeIsString(temporaryFileContainingOutputBytes)
 			
 			commandLineArguments:insert(temporaryFileContainingOutputBytes)
