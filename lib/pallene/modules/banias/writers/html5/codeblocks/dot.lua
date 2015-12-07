@@ -8,33 +8,37 @@ local halimede = require('halimede')
 local markuplanguagewriter = require('markuplanguagewriter')
 local Html5Writer = markuplanguagewriter.Html5Writer
 local writer = markuplanguagewriter.Html5Writer.singleton
-local executeInShellAndReadAllFromStandardIn = halimede.io.shell.executeInShellAndReadAllFromStandardIn
-local shellLanguage = halimede.io.ShellLanguage.Default
+
 local tabelize = halimede.table.tabelize
-local halimedeIo = halimede.io.temporaryWrite
+local shellLanguage = halimede.io.ShellLanguage.default()
+local useTemporaryTextFileAfterWritingAllContentsAndClosing = halimede.io.temporary.useTemporaryTextFileAfterWritingAllContentsAndClosing
+
+-- TODO: Syntax for defining programs needed on the PATH
+
 
 -- Runs dot then base64 on 'rawCodeString' to produce a base64-encoded png in a data: URL
 -- Added to retain compatibility with JGM's Pandoc
-parentModule.register(leafModuleName, function(rawCodeString, attributesTable)
+assert.globalTypeIsFunction('unpack')
+local function dot(rawCodeString, attributesTable)
 	assert.parameterTypeIsString('rawCodeString', rawCodeString)
 	assert.parameterTypeIsTable('attributesTable', attributesTable)
 	
 	local function pipe(outputBytes, ...)
-		
 		local commandlineArguments = tabelize({...})
 		
-		halimedeIo.toTemporaryFileAllContentsInTextModeAndUse(outputBytes, shellLanguage.shellScriptFileExtensionIncludingLeadingPeriod, function(temporaryFileContainingOutputBytes)
-			assert.parameterTypeIsString('temporaryFileContainingOutputBytes', temporaryFileContainingOutputBytes)
-			
-			commandLineArguments:insert(temporaryFileContainingOutputBytes)
-			commandLineArguments:insert(shellLanguage.silenceStandardError)
-			return executeInShellAndReadAllFromStandardIn(shellLanguage, unpack(commandlineArguments))
+		temporaryWrite.useTemporaryTextFile()
+	
+		useTemporaryTextFileAfterWritingAllContentsAndClosing(shellLanguage.shellScriptFileExtensionIncludingLeadingPeriod, outputBytes, function(temporaryFilePath)
+			commandLineArguments:insert(temporaryFilePath)
+			local fileHandleStream = shellLanguage:popenReadingFromSubprocess(shellLanguage.silenced, shellLanguage.silenced, unpack(commandlineArguments))
+			return fileHandleStream:readAllContentsAndClose()
 		end)
 	end
 	
-	-- TODO: Syntax for defining programs needed on the PATH
 	local dotted = pipe(rawCodeString, 'dot', '-Tpng')
     local base64EncondedPortalNetworkGraphicsImage = pipe(dotted, 'base64')
 	
-	return writer:writeElement('img', '', {src = 'data:image/png;base64,' .. base64EncondedPortalNetworkGraphicsImage})
-end)
+	return writer:writeElementWithoutPhrasingContent('img', {src = 'data:image/png;base64,' .. base64EncondedPortalNetworkGraphicsImage})
+end
+
+modulefunction(dot)

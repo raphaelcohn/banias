@@ -139,7 +139,7 @@ function RawBlock(format, content)
 end
 
 function HorizontalRule()
-	return writer:writeElementEmptyTag('hr')
+	return writer:writeElementWithoutPhrasingContent('hr')
 end
 
 function Header(oneBasedLevelInteger, phrasingContent, attributesTable)
@@ -150,17 +150,22 @@ function Header(oneBasedLevelInteger, phrasingContent, attributesTable)
 	return writer:writeElement('h' .. oneBasedLevelInteger, phrasingContent, attributesTable)
 end
 
+-- Relies on halimede's auto-loader
 local codeblocks = require(moduleName .. '.' .. 'codeblocks')
-local functions = codeblocks.functions
+local function codeblockWriterLoader(writerName)
+	return codeblocks[writerName]
+end
+
+assert.globalTypeIsFunction('pcall')
 function CodeBlock(rawCodeString, attributesTable)
 	assert.parameterTypeIsString('rawCodeString', rawCodeString)
 	assert.parameterTypeIsTable('attributesTable', attributesTable)
 	
-	local class = attributesTable.class
-	if class then
-		return functions[class](rawCodeString, attributesTable)
+	local ok, codeblockWriter = pcall(codeblockWriterLoader, class)
+	if ok then
+		return codeblockWriter(rawCodeString, attributesTable)
 	else
-		return codeblocks.default(rawCodeString, attributesTable)
+		return writer:writeElement('pre', writer:writeElement('code', writer:writeText(rawCodeString), attributesTable))
 	end
 end
 
@@ -333,7 +338,7 @@ function RawInline(format, content)
 end
 
 function LineBreak()
-	return writer:writeElementEmptyTag('br')
+	return writer:writeElementWithoutPhrasingContent('br')
 end
 
 function Link(phrasingContent, url, title)

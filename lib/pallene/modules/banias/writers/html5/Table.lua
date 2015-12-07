@@ -51,7 +51,7 @@ function Table(caption, pandocAlignments, widths, headers, rows)
 			assert.parameterTypeIsNumber('width', width)
 			
 			local percentageWidth = string.format('%d%%', width * 100)
-			add(writer:writeElement('col', '', {width = percentageWidth}))
+			add(writer:writeElementWithoutPhrasingContent('col', {width = percentageWidth}))
 		end
 	end
 	

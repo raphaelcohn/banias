@@ -8,8 +8,7 @@ local halimede = require('halimede')
 local markuplanguagewriter = require('markuplanguagewriter')
 local Html5Writer = markuplanguagewriter.Html5Writer
 local writer = markuplanguagewriter.Html5Writer.singleton
-local executeInShellAndReadAllFromStandardIn = halimede.io.shell.executeInShellAndReadAllFromStandardIn
-local shellLanguage = halimede.io.ShellLanguage.Default
+local shellLanguage = halimede.io.ShellLanguage.default()
 local tabelize = halimede.table.tabelize
 
 
@@ -50,7 +49,10 @@ function Image(altText, url, titleWithoutSmartQuotes)
 	-- TODO: Check if jpeg using file xxx, may be it's a PNG or GIF
 	-- TODO: Test converting to PNG or GIF for smaller sizes
 	-- TODO: Don't base64 encode unless necessary
-	local line = executeInShellAndReadAllFromStandardIn(shellLanguage, 'jpeginfo', '--info', '--lsstyle', url, shellLanguage.silenceStandardError)
+	local fileHandleStream = shellLanguage:popenReadingFromSubprocess(shellLanguage.silenced, shellLanguage.silenced, 'jpeginfo', '--info', '--lsstyle', url)
+	local line = fileHandleStream:readAllContentsAndClose()
+	
+	
 	local index = 1
 	local jpegInfo = {}
 	for fragment in line:gmatch('([^ ]+)') do
@@ -61,5 +63,5 @@ function Image(altText, url, titleWithoutSmartQuotes)
 		
 		index = index + 1
 	end
-	return writer:writeElement('img', '', {url = url, title = titleWithoutSmartQuotes, alt = altText, width = jpegInfo.width, height = jpegInfo.height})
+	return writer:writeElementWithoutPhrasingContent('img', {url = url, title = titleWithoutSmartQuotes, alt = altText, width = jpegInfo.width, height = jpegInfo.height})
 end
