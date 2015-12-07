@@ -4,12 +4,11 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 ]]--
 
 
-local assert = require('halimede').assert
-local exception = require('halimede.exception')
+local halimede = require('halimede')
+local exception = halimede.exception
 
 
 assert.globalTableHasChieldFieldOfTypeFunction('os', 'getenv')
-assert.globalTypeIsFunction('require')
 local function loadWriter()
 	local environmentVariable = 'LUA_BANIAS_WRITER'
 	local writer = os.getenv(environmentVariable)

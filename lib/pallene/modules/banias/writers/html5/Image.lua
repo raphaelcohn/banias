@@ -4,44 +4,38 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 ]]--
 
 
-local executeInShellAndReadAllFromStandardIn = require('halimede.io.shell').executeInShellAndReadAllFromStandardIn
-local shellLanguage = require('halimede.io.ShellLanguage').Default
-local tabelize = require('halimede.table.tabelize').tabelize
-
-local Html5Writer = require('markuplanguagewriter.Html5Writer')
-local writeText = Html5Writer.writeText
-local writeElementNameWithAttributes = Html5Writer.writeElementNameWithAttributes
-local writeElementOpenTag = Html5Writer.writeElementOpenTag
-local writeElementEmptyTag = Html5Writer.writeElementEmptyTag
-local writeElementCloseTag = Html5Writer.writeElementCloseTag
-local writeElement = Html5Writer.writeElement
-
-local assert = require('halimede.assert')
+local halimede = require('halimede')
+local markuplanguagewriter = require('markuplanguagewriter')
+local Html5Writer = markuplanguagewriter.Html5Writer
+local writer = markuplanguagewriter.Html5Writer.singleton
+local executeInShellAndReadAllFromStandardIn = halimede.io.shell.executeInShellAndReadAllFromStandardIn
+local shellLanguage = halimede.io.ShellLanguage.Default
+local tabelize = halimede.table.tabelize
 
 
 function CaptionedImage(url, title, altText)
-	assert.parameterTypeIsString(url)
-	assert.parameterTypeIsString(title)
-	assert.parameterTypeIsString(altText)
+	assert.parameterTypeIsString('url', url)
+	assert.parameterTypeIsString('title', title)
+	assert.parameterTypeIsString('altText', altText)
 	
 	local buffer = tabelize()
 	local function add(content)
 		buffer:insert(content)
 	end
 	
-	add(writeElementOpenTag('figure'))
+	add(writer:writeElementOpenTag('figure'))
 	add(Image(altText, url, title))
-	add(writeElement('figcaption', altText))
-	add(writeElementCloseTag('figure'))
+	add(writer:writeElement('figcaption', altText))
+	add(writer:writeElementCloseTag('figure'))
 	
 	return buffer:concat()
 end
 
+assert.globalTableHasChieldFieldOfTypeFunction('string', 'gmatch')
 function Image(altText, url, titleWithoutSmartQuotes)
-	assert.parameterTypeIsString(altText)
-	assert.parameterTypeIsString(url)
-	assert.parameterTypeIsString(titleWithoutSmartQuotes)
-	
+	assert.parameterTypeIsString('altText', altText)
+	assert.parameterTypeIsString('url', url)
+	assert.parameterTypeIsString('titleWithoutSmartQuotes', titleWithoutSmartQuotes)
 	
 	local conversionMapping = {
 		'width',
@@ -67,5 +61,5 @@ function Image(altText, url, titleWithoutSmartQuotes)
 		
 		index = index + 1
 	end
-	return writeElement('img', '', {url = url, title = titleWithoutSmartQuotes, alt = altText, width = jpegInfo.width, height = jpegInfo.height})
+	return writer:writeElement('img', '', {url = url, title = titleWithoutSmartQuotes, alt = altText, width = jpegInfo.width, height = jpegInfo.height})
 end

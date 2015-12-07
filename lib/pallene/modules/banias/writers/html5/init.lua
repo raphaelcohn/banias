@@ -4,17 +4,12 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 ]]--
 
 
-local tabelize = require('halimede.table.tabelize').tabelize
+local halimede = require('halimede')
+local tabelize = halimede.table.tabelize
+local markuplanguagewriter = require('markuplanguagewriter')
+local Html5Writer = markuplanguagewriter.Html5Writer
+local writer = markuplanguagewriter.Html5Writer.singleton
 
-local Html5Writer = require('markuplanguagewriter.Html5Writer')
-local writeText = Html5Writer.writeText
-local writeElementNameWithAttributes = Html5Writer.writeElementNameWithAttributes
-local writeElementOpenTag = Html5Writer.writeElementOpenTag
-local writeElementEmptyTag = Html5Writer.writeElementEmptyTag
-local writeElementCloseTag = Html5Writer.writeElementCloseTag
-local writeElement = Html5Writer.writeElement
-
-local assert = require('halimede.assert')
 
 --[[TODO:
 * Header Numbering (class header-section-number)
@@ -89,10 +84,11 @@ Required styles:-
 local footnotes = tabelize()
 --TODO: Add meta author, dcterms.date to ?metadata?
 --TODO: Missing <title></title>!
+assert.globalTypeIsFunction('pairs')
 function Doc(body, metadata, variables)
-	assert.parameterTypeIsString(body)
-	assert.parameterTypeIsTable(metadata)
-	assert.parameterTypeIsTable(variables)
+	assert.parameterTypeIsString('body', body)
+	assert.parameterTypeIsTable('metadata', metadata)
+	assert.parameterTypeIsTable('variables', variables)
 	
 	local buffer = tabelize()
 	
@@ -104,60 +100,61 @@ function Doc(body, metadata, variables)
 	
 	-- TODO: Don't we always want to output this, as it may occupy space on the page (eg styled as a block)?
 	if #footnotes > 0 then
-		add(writeElementOpenTag(writeElementNameWithAttributes('ol', {class = 'footnotes'})))
+		add(writer:writeElementOpenTag(writer:writeElementNameWithAttributes('ol', {class = 'footnotes'})))
 		for _, footnote in pairs(footnotes) do
 			add(footnote)
 		end
-		add(writeElementCloseTag('ol'))
+		add(writer:writeElementCloseTag('ol'))
 	end
 	
 	return buffer:concat()
 end
 
 function Plain(phrasingContent)
+	assert.parameterTypeIsString('phrasingContent', phrasingContent)
+	
 	return phrasingContent
 end
 
 -- CaptionedImage() supplied by Image()
-requireChild('Image')
+require(moduleName .. '.' .. 'Image')
 
 function Para(phrasingContent)
-	assert.parameterTypeIsString(phrasingContent)
+	assert.parameterTypeIsString('phrasingContent', phrasingContent)
 	
-	return writeElement('p', phrasingContent)
+	return writer:writeElement('p', phrasingContent)
 end
 
 function RawBlock(format, content)
-	assert.parameterTypeIsString(format)
-	assert.parameterTypeIsString(content)
+	assert.parameterTypeIsString('format', format)
+	assert.parameterTypeIsString('content', content)
 	
 	if format == 'html' then
 		return content
 	else
 		-- Just drop the output; Pandoc only supports MathJax in RawBlock
 		return ''
-		--return writeElement('pre', writeText(content))
+		--return writer:writeElement('pre', writer:writeText(content))
 	end
 end
 
 function HorizontalRule()
-	return writeElementEmptyTag('hr')
+	return writer:writeElementEmptyTag('hr')
 end
 
 function Header(oneBasedLevelInteger, phrasingContent, attributesTable)
-	assert.parameterTypeIsNumber(oneBasedLevelInteger)
-	assert.parameterTypeIsString(phrasingContent)
-	assert.parameterTypeIsTable(attributesTable)
+	assert.parameterTypeIsNumber('oneBasedLevelInteger', oneBasedLevelInteger)
+	assert.parameterTypeIsString('phrasingContent', phrasingContent)
+	assert.parameterTypeIsTable('attributesTable', attributesTable)
 	
-	return writeElement('h' .. oneBasedLevelInteger, phrasingContent, attributesTable)
+	return writer:writeElement('h' .. oneBasedLevelInteger, phrasingContent, attributesTable)
 end
 
-local codeblocks = requireChild('codeblocks')
+local codeblocks = require(moduleName .. '.' .. 'codeblocks')
 local functions = codeblocks.functions
-
 function CodeBlock(rawCodeString, attributesTable)
-	assert.parameterTypeIsString(rawCodeString)
-	assert.parameterTypeIsTable(attributesTable)
+	assert.parameterTypeIsString('rawCodeString', rawCodeString)
+	assert.parameterTypeIsTable('attributesTable', attributesTable)
 	
 	local class = attributesTable.class
 	if class then
@@ -168,19 +165,20 @@ function CodeBlock(rawCodeString, attributesTable)
 end
 
 function BlockQuote(phrasingContent)
-	assert.parameterTypeIsString(phrasingContent)
+	assert.parameterTypeIsString('phrasingContent', phrasingContent)
 	
-	return writeElement('blockquote', phrasingContent)
+	return writer:writeElement('blockquote', phrasingContent)
 end
 
-requireChild('Table')
+require(moduleName .. '.' .. 'Table')
 
-requireChild('BulletListAndOrderedList')
+require(moduleName .. '.' .. 'BulletListAndOrderedList')
 
 -- TODO: Use <defn> tag to define a term in the <dt>, eg <dt><defn>hello</defn></dt><dd>A way to greet someone</dd></dt>
 -- TODO: Tag ommission rules for dd / dt  http://www.w3.org/html/wg/drafts/html/master/semantics.html#the-dl-element
+assert.globalTypeIsFunction('pairs', 'ipairs')
 function DefinitionList(items)
-	assert.parameterTypeIsTable(items)
+	assert.parameterTypeIsTable('items', items)
 	
 	local buffer = tabelize()
 	
@@ -189,28 +187,28 @@ function DefinitionList(items)
 	end
 	
 	for _, item in pairs(items) do
-		assert.parameterTypeIsTable(item)
+		assert.parameterTypeIsTable('item', item)
 	
 		for definitionTerm, definitions in pairs(item) do
-			assert.parameterTypeIsString(definitionTerm)
-			assert.parameterTypeIsTable(definitions)
+			assert.parameterTypeIsString('definitionTerm', definitionTerm)
+			assert.parameterTypeIsTable('definitions', definitions)
 			
-			add(writeElement('dt', definitionTerm))
+			add(writer:writeElement('dt', definitionTerm))
 			
 			for _, definition in ipairs(definitions) do
-				add(writeElement('dd', definition))
+				add(writer:writeElement('dd', definition))
 			end
 		end
 	end
-	return writeElement('dl', buffer:concat(), {})
+	return writer:writeElement('dl', buffer:concat(), {})
 end
 
 -- TODO: No use of <section>? Why?
 function Div(content, attributesTable)
-	assert.parameterTypeIsString(content)
-	assert.parameterTypeIsTable(attributesTable)
+	assert.parameterTypeIsString('content', content)
+	assert.parameterTypeIsTable('attributesTable', attributesTable)
 	
-	return writeElement('div', content, attributesTable)
+	return writer:writeElement('div', content, attributesTable)
 end
 
 function Blocksep()
@@ -218,9 +216,9 @@ function Blocksep()
 end
 
 function Str(rawText)
-	assert.parameterTypeIsString(rawText)
+	assert.parameterTypeIsString('rawText', rawText)
 	
-	return writeText(rawText)
+	return writer:writeText(rawText)
 end
 
 function Space()
@@ -228,46 +226,46 @@ function Space()
 end
 
 function Emph(phrasingContent)
-	assert.parameterTypeIsString(phrasingContent)
+	assert.parameterTypeIsString('phrasingContent', phrasingContent)
 	
-	return writeElement('em', phrasingContent)
+	return writer:writeElement('em', phrasingContent)
 end
 
 function Strong(phrasingContent)
-	assert.parameterTypeIsString(phrasingContent)
+	assert.parameterTypeIsString('phrasingContent', phrasingContent)
 	
-	return writeElement('strong', phrasingContent)
+	return writer:writeElement('strong', phrasingContent)
 end
 
 function Strikeout(phrasingContent)
-	assert.parameterTypeIsString(phrasingContent)
+	assert.parameterTypeIsString('phrasingContent', phrasingContent)
 	
-	return writeElement('del', phrasingContent)
+	return writer:writeElement('del', phrasingContent)
 end
 
 function Subscript(phrasingContent)
-	assert.parameterTypeIsString(phrasingContent)
+	assert.parameterTypeIsString('phrasingContent', phrasingContent)
 	
-	return writeElement('sub', phrasingContent)
+	return writer:writeElement('sub', phrasingContent)
 end
 
 function Superscript(phrasingContent)
-	assert.parameterTypeIsString(phrasingContent)
+	assert.parameterTypeIsString('phrasingContent', phrasingContent)
 	
-	return writeElement('sup', phrasingContent)
+	return writer:writeElement('sup', phrasingContent)
 end
 
 function SmallCaps(phrasingContent)
-	assert.parameterTypeIsString(phrasingContent)
+	assert.parameterTypeIsString('phrasingContent', phrasingContent)
 	
 	-- was style = 'font-variant: small-caps;'  but this is longer than class="smallcaps"
-	return writeElement('span', phrasingContent, {class = 'smallcaps'})
+	return writer:writeElement('span', phrasingContent, {class = 'smallcaps'})
 end
 
 local singleOpeningQuoteUtf8 = '\226\128\152' -- LEFT SINGLE QUOTATION MARK, Unicode: U+2018, UTF-8: E2 80 98
 local singleClosingQuoteUtf8 = '\226\128\153' -- RIGHT SINGLE QUOTATION MARK, Unicode: U+2019, UTF-8: E2 80 99
 function SingleQuoted(phrasingContent)
-	assert.parameterTypeIsString(phrasingContent)
+	assert.parameterTypeIsString('phrasingContent', phrasingContent)
 	
 	return singleOpeningQuoteUtf8 .. phrasingContent .. singleClosingQuote
 end
@@ -275,20 +273,21 @@ end
 local doubleOpeningQuoteUtf8 = '\226\128\156' -- LEFT DOUBLE QUOTATION MARK, Unicode: U+201C, UTF-8: E2 80 9C
 local doubleClosingQuoteUtf8 = '\226\128\157' -- RIGHT DOUBLE QUOTATION MARK, Unicode: U+201D, UTF-8: E2 80 9D
 function DoubleQuoted(phrasingContent)
-	assert.parameterTypeIsString(phrasingContent)
+	assert.parameterTypeIsString('phrasingContent', phrasingContent)
 	
 	return doubleOpeningQuoteUtf8 .. phrasingContent .. doubleClosingQuote
 end
 
+assert.globalTypeIsFunction('ipairs')
 function Cite(phrasingContent, citations)
-	assert.parameterTypeIsString(phrasingContent)
-	assert.parameterTypeIsTable(citations)
+	assert.parameterTypeIsString('phrasingContent', phrasingContent)
+	assert.parameterTypeIsTable('citations', citations)
 	
 	local identifiers = tablelize()
 	
 	-- Also .citationPrefix, .citationSuffix, .citationMode, .citationNoteNum, .citationHash
 	for _, citation in ipairs(citations) do
-		assert.parameterTypeIsTable(citation)
+		assert.parameterTypeIsTable('citation', citation)
 		identifiers:insert(citation.citationId)
 	end
 	
@@ -297,31 +296,31 @@ function Cite(phrasingContent, citations)
 	}
 	attributesTable['data-citation-identifiers'] = identifiers:concat(',')
 	
-	return writeElement('span', phrasingContent, attributesTable)
+	return writer:writeElement('span', phrasingContent, attributesTable)
 end
 
 function Code(rawCodeString, attributesTable)
-	assert.parameterTypeIsString(rawCodeString)
-	assert.parameterTypeIsTable(attributesTable)
+	assert.parameterTypeIsString('rawCodeString', rawCodeString)
+	assert.parameterTypeIsTable('attributesTable', attributesTable)
 	
-	return writeElement('code', writeText(rawCodeString), attributesTable)
+	return writer:writeElement('code', writer:writeText(rawCodeString), attributesTable)
 end
 
 function DisplayMath(rawText)
-	assert.parameterTypeIsString(rawText)
+	assert.parameterTypeIsString('rawText', rawText)
 	
-	return '\\[' .. writeText(rawText) .. '\\]'
+	return '\\[' .. writer:writeText(rawText) .. '\\]'
 end
 
 function InlineMath(rawText)
-	assert.parameterTypeIsString(rawText)
+	assert.parameterTypeIsString('rawText', rawText)
 	
-	return '\\(' .. writeText(rawText) .. '\\)'
+	return '\\(' .. writer:writeText(rawText) .. '\\)'
 end
 
 function RawInline(format, content)
-	assert.parameterTypeIsString(format)
-	assert.parameterTypeIsString(content)
+	assert.parameterTypeIsString('format', format)
+	assert.parameterTypeIsString('content', content)
 	
 	if format == 'html' then
 		return content
@@ -329,30 +328,31 @@ function RawInline(format, content)
 		-- Could be latex, Pandoc here only supports LaTeXMathML and MathJax
 		-- Commenting is dangerous; -- needs removing, as does ]]> and they still exist as nodes, so we simply silently drop them from output
 		return ''
-		--return writeElement('code', writeText(content))
+		--return writer:writeElement('code', writer:writeText(content))
 	end
 end
 
 function LineBreak()
-	return writeElementEmptyTag('br')
+	return writer:writeElementEmptyTag('br')
 end
 
 function Link(phrasingContent, url, title)
-	assert.parameterTypeIsString(phrasingContent)
-	assert.parameterTypeIsString(url)
-	assert.parameterTypeIsString(title)
+	assert.parameterTypeIsString('phrasingContent', phrasingContent)
+	assert.parameterTypeIsString('url', url)
+	assert.parameterTypeIsString('title', title)
 	
-	return writeElement('a', phrasingContent, {url = url, title = title})
+	return writer:writeElement('a', phrasingContent, {url = url, title = title})
 end
 
-requireChild('Image')
+require(moduleName .. '.' .. 'Image')
 
 -- HTML Entity '&#8617;' replaced with UTF-8 encoding for efficiency
+assert.globalTableHasChieldFieldOfTypeFunction('string', 'gsub')
 local unicodeLeftwardArrowWithHookInUtf8 = '\226\134\169'
 local footnoteIdentifierPrefix = 'fn'
 local footnoteReferenceIdentifierPrefix = footnoteIdentifierPrefix .. 'ref'
 function Note(phrasingContent)
-	assert.parameterTypeIsString(phrasingContent)
+	assert.parameterTypeIsString('phrasingContent', phrasingContent)
 	
 	local oneBasedFootnoteIndex = #footnotes + 1
 	
@@ -361,18 +361,18 @@ function Note(phrasingContent)
 	local footnoteReferenceIdentifier = footnoteReferenceIdentifierPrefix .. oneBasedFootnoteIndex
 	local footnoteReferenceIdentifierHref = '#' .. footnoteReferenceIdentifierPrefix .. oneBasedFootnoteIndex
 	
-	local xxx = writeElement('a', unicodeLeftwardArrowWithHookInUtf8, {href = footnoteReferenceIdentifierHref})
+	local xxx = writer:writeElement('a', unicodeLeftwardArrowWithHookInUtf8, {href = footnoteReferenceIdentifierHref})
 	phrasingContentWithBackReferenceRightBeforeTheFinalClosingTag = phrasingContent:gsub('(.*)</', '%1 ' .. xxx .. '</')
 	
-	footnotes:insert(writeElement('li', phrasingContentWithBackReferenceRightBeforeTheFinalClosingTag, {id = footnoteIdentifier}))
+	footnotes:insert(writer:writeElement('li', phrasingContentWithBackReferenceRightBeforeTheFinalClosingTag, {id = footnoteIdentifier}))
 	
-	local sup = writeElement('sup', '' .. oneBasedFootnoteIndex)
-	return writeElement('a', sup, {id = footnoteReferenceIdentifier, href = footnoteIdentifierHref})
+	local sup = writer:writeElement('sup', '' .. oneBasedFootnoteIndex)
+	return writer:writeElement('a', sup, {id = footnoteReferenceIdentifier, href = footnoteIdentifierHref})
 end
 
 function Span(phrasingContent, attributesTable)
-	assert.parameterTypeIsString(phrasingContent)
-	assert.parameterTypeIsTable(attributesTable)
+	assert.parameterTypeIsString('phrasingContent', phrasingContent)
+	assert.parameterTypeIsTable('attributesTable', attributesTable)
 	
-	return writeElement('span', phrasingContent, attributesTable)
+	return writer:writeElement('span', phrasingContent, attributesTable)
 end

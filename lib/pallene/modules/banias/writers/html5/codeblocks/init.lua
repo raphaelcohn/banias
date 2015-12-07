@@ -4,29 +4,26 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 ]]--
 
 
-local Html5Writer = require('markuplanguagewriter.Html5Writer')
-local writeText = Html5Writer.writeText
-local writeElementNameWithAttributes = Html5Writer.writeElementNameWithAttributes
-local writeElementOpenTag = Html5Writer.writeElementOpenTag
-local writeElementEmptyTag = Html5Writer.writeElementEmptyTag
-local writeElementCloseTag = Html5Writer.writeElementCloseTag
-local writeElement = Html5Writer.writeElement
+local halimede = require('halimede')
+local markuplanguagewriter = require('markuplanguagewriter')
+local Html5Writer = markuplanguagewriter.Html5Writer
+local writer = markuplanguagewriter.Html5Writer.singleton
 
-local assert = require('halimede.assert')
 
 function default(rawCodeString, attributesTable)
-	assert.parameterTypeIsString(rawCodeString)
-	assert.parameterTypeIsTable(attributesTable)
+	assert.parameterTypeIsString('rawCodeString', rawCodeString)
+	assert.parameterTypeIsTable('attributesTable', attributesTable)
 	
 	-- TODO: Consider adding highlighters here, eg using kate
-	return writeElement('pre', writeElement('code', writeText(rawCodeString), attributesTable))
+	return writer:writeElement('pre', writer:writeElement('code', writer:writeText(rawCodeString), attributesTable))
 end
 module.default = default
 
+assert.globalTypeIsFunction('setmetatable')
 local functions = setmetatable({}, {
 	__index = function(_, key)
-		assert.parameterTypeIsTable(_)
-		assert.parameterTypeIsString(key)
+		assert.parameterTypeIsTable('_', _)
+		assert.parameterTypeIsString('key', key)
 		
 		return default
 	end
@@ -34,11 +31,11 @@ local functions = setmetatable({}, {
 module.functions = functions
 
 module.register = function(name, someCodeBlockFunction)
-	assert.parameterTypeIsString(name)
-	assert.parameterTypeIsFunction(someCodeBlockFunction)
+	assert.parameterTypeIsString('name', name)
+	assert.parameterTypeIsFunction('someCodeBlockFunction', someCodeBlockFunction)
 	
 	functions[name] = someCodeBlockFunction
 end
 
 -- TODO: Load all submodules that are present!
-requireChild('dot')
+require(moduleName .. '.' .. 'dot')

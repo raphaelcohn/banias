@@ -4,36 +4,32 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 ]]--
 
 
-local Html5Writer = require('markuplanguagewriter.Html5Writer')
-local writeText = Html5Writer.writeText
-local writeElementNameWithAttributes = Html5Writer.writeElementNameWithAttributes
-local writeElementOpenTag = Html5Writer.writeElementOpenTag
-local writeElementEmptyTag = Html5Writer.writeElementEmptyTag
-local writeElementCloseTag = Html5Writer.writeElementCloseTag
-local writeElement = Html5Writer.writeElement
+local halimede = require('halimede')
+local tabelize = halimede.table.tabelize
+local exception = halimede.exception
+local markuplanguagewriter = require('markuplanguagewriter')
+local Html5Writer = markuplanguagewriter.Html5Writer
+local writer = markuplanguagewriter.Html5Writer.singleton
 
-local assert = require('halimede.assert')
 
-local tabelize = require('halimede.table.tabelize').tabelize
-
-local exception = require('halimede.exception')
-
+assert.globalTypeIsFunction('pairs')
 local function htmlSimpleList(elementName, items, attributesTable)
-	
 	local buffer = tabelize()
 	for _, phrasingContent in pairs(items) do
-		assert.parameterTypeIsString(phrasingContent)
+		assert.parameterTypeIsString('phrasingContent', phrasingContent)
+		
 		buffer:insert(writeElement('li', phrasingContent))
 	end
-	return writeElement(elementName, buffer:concat(), attributesTable)
+	return writer:writeElement(elementName, buffer:concat(), attributesTable)
 end
 
 function BulletList(items)
-	assert.parameterTypeIsTable(items)
+	assert.parameterTypeIsTable('items', items)
 	
 	return htmlSimpleList('ul', items, {})
 end
 
+assert.globalTypeIsFunction('setmetatable')
 local pandocStyleToOlTypeMapping = setmetatable({
 	UpperAlpha = 'a',
 	LowerAlpha = 'A',
@@ -48,7 +44,7 @@ end})
 
 -- TODO: Use delimiter DefaultDelim, Period, OneParen, TwoParens
 function OrderedList(items, start, style, delimiter)
-	assert.parameterTypeIsTable(items)
+	assert.parameterTypeIsTable('items', items)
 	
 	local attributesTable = {}
 	if start ~= nil and start ~= 1 then

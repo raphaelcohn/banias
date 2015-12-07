@@ -4,33 +4,27 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 ]]--
 
 
-local Html5Writer = require('markuplanguagewriter.Html5Writer')
-local writeText = Html5Writer.writeText
-local writeElementNameWithAttributes = Html5Writer.writeElementNameWithAttributes
-local writeElementOpenTag = Html5Writer.writeElementOpenTag
-local writeElementEmptyTag = Html5Writer.writeElementEmptyTag
-local writeElementCloseTag = Html5Writer.writeElementCloseTag
-local writeElement = Html5Writer.writeElement
-
-local assert = require('halimede.assert')
-local executeInShellAndReadAllFromStandardIn = require('halimede.io.shell').executeInShellAndReadAllFromStandardIn
-local shellLanguage = require('halimede.io.ShellLanguage').Default
-local tabelize = require('halimede.table.tabelize').tabelize
-
-local halimedeIo = require('halimede.io.temporaryWrite')
+local halimede = require('halimede')
+local markuplanguagewriter = require('markuplanguagewriter')
+local Html5Writer = markuplanguagewriter.Html5Writer
+local writer = markuplanguagewriter.Html5Writer.singleton
+local executeInShellAndReadAllFromStandardIn = halimede.io.shell.executeInShellAndReadAllFromStandardIn
+local shellLanguage = halimede.io.ShellLanguage.Default
+local tabelize = halimede.table.tabelize
+local halimedeIo = halimede.io.temporaryWrite
 
 -- Runs dot then base64 on 'rawCodeString' to produce a base64-encoded png in a data: URL
 -- Added to retain compatibility with JGM's Pandoc
 parentModule.register(leafModuleName, function(rawCodeString, attributesTable)
-	assert.parameterTypeIsString(rawCodeString)
-	assert.parameterTypeIsTable(attributesTable)
+	assert.parameterTypeIsString('rawCodeString', rawCodeString)
+	assert.parameterTypeIsTable('attributesTable', attributesTable)
 	
 	local function pipe(outputBytes, ...)
 		
 		local commandlineArguments = tabelize({...})
 		
 		halimedeIo.toTemporaryFileAllContentsInTextModeAndUse(outputBytes, shellLanguage.shellScriptFileExtensionIncludingLeadingPeriod, function(temporaryFileContainingOutputBytes)
-			assert.parameterTypeIsString(temporaryFileContainingOutputBytes)
+			assert.parameterTypeIsString('temporaryFileContainingOutputBytes', temporaryFileContainingOutputBytes)
 			
 			commandLineArguments:insert(temporaryFileContainingOutputBytes)
 			commandLineArguments:insert(shellLanguage.silenceStandardError)
@@ -42,5 +36,5 @@ parentModule.register(leafModuleName, function(rawCodeString, attributesTable)
 	local dotted = pipe(rawCodeString, 'dot', '-Tpng')
     local base64EncondedPortalNetworkGraphicsImage = pipe(dotted, 'base64')
 	
-	return writeElement('img', '', {src = 'data:image/png;base64,' .. base64EncondedPortalNetworkGraphicsImage})
+	return writer:writeElement('img', '', {src = 'data:image/png;base64,' .. base64EncondedPortalNetworkGraphicsImage})
 end)

@@ -4,19 +4,15 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 ]]--
 
 
-local Html5Writer = require('markuplanguagewriter.Html5Writer')
-local writeText = Html5Writer.writeText
-local writeElementNameWithAttributes = Html5Writer.writeElementNameWithAttributes
-local writeElementOpenTag = Html5Writer.writeElementOpenTag
-local writeElementEmptyTag = Html5Writer.writeElementEmptyTag
-local writeElementCloseTag = Html5Writer.writeElementCloseTag
-local writeElement = Html5Writer.writeElement
+local halimede = require('halimede')
+local tabelize = halimede.table.tabelize
+local markuplanguagewriter = require('markuplanguagewriter')
+local Html5Writer = markuplanguagewriter.Html5Writer
+local writer = markuplanguagewriter.Html5Writer.singleton
 
-local assert = require('halimede.assert')
-
-local tabelize = require('halimede.table.tabelize').tabelize
 
 -- Or use style="text-align:VALUE;" Or use class="align-VALUE"
+assert.globalTypeIsFunction('setmetatable')
 local defaultHtmlAlignment = 'left'
 local pandocToHtmlAlignmentLookUp = setmetatable({
 		AlignLeft = 'left',
@@ -30,12 +26,13 @@ local pandocToHtmlAlignmentLookUp = setmetatable({
 	}
 )
 
+assert.globalTypeIsFunction('pairs')
 function Table(caption, pandocAlignments, widths, headers, rows)
-	assert.parameterTypeIsString(caption)
-	assert.parameterTypeIsTable(pandocAlignments)
-	assert.parameterTypeIsTable(widths)
-	assert.parameterTypeIsTable(headers)
-	assert.parameterTypeIsTable(rows)
+	assert.parameterTypeIsString('caption', caption)
+	assert.parameterTypeIsTable('pandocAlignments', pandocAlignments)
+	assert.parameterTypeIsTable('widths', widths)
+	assert.parameterTypeIsTable('headers', headers)
+	assert.parameterTypeIsTable('rows', rows)
 	
 	local buffer = tabelize()
 	
@@ -43,50 +40,54 @@ function Table(caption, pandocAlignments, widths, headers, rows)
 		buffer:insert(content)
 	end
 	
-	add(writeElementOpenTag('table'))
+	add(writer:writeElementOpenTag('table'))
   
 	if caption ~= '' then
-		add(writeElement('caption', caption))
+		add(writer:writeElement('caption', caption))
 	end
 	
 	if widths and widths[1] ~= 0 then
     	for _, width in pairs(widths) do
-			assert.parameterTypeIsNumber(width)
+			assert.parameterTypeIsNumber('width', width)
+			
 			local percentageWidth = string.format('%d%%', width * 100)
-			add(writeElement('col', '', {width = percentageWidth}))
+			add(writer:writeElement('col', '', {width = percentageWidth}))
 		end
 	end
 	
 	local headerRow = tabelize()
 	local isHeaderEmpty = true
 	for columnIndex, headerCellPhrasedContent in pairs(headers) do
-		assert.parameterTypeIsString(headerCellPhrasedContent)
+		assert.parameterTypeIsString('headerCellPhrasedContent', headerCellPhrasedContent)
+		
 		local align = pandocToHtmlAlignmentLookUp[pandocAlignments[columnIndex]]
-		headerRow:insert(writeElement('th', headerCellPhrasedContent, {class = 'align ' .. align}))
+		headerRow:insert(writer:writeElement('th', headerCellPhrasedContent, {class = 'align ' .. align}))
 		isHeaderEmpty = isHeaderEmpty and headerCellPhrasedContent == ''
 	end
 	if not isHeaderEmpty then
-		add(writeElementOpenTag(writeElementNameWithAttributes('tr', {class = 'header'})))
+		add(writer:writeElementOpenTag(writer:writeElementNameWithAttributes('tr', {class = 'header'})))
 		for _, thCell in pairs(headerRow) do
 			add(thCell)
 		end
-		add(writeElementCloseTag('tr'))
+		add(writer:writeElementCloseTag('tr'))
 	end
 	
 	local class = 'even'
 	for _, row in pairs(rows) do
-		assert.parameterTypeIsTable(row)
+		assert.parameterTypeIsTable('row', row)
+		
 		class = (class == 'even' and 'odd') or 'even'
-		add(writeElementOpenTag(writeElementNameWithAttributes('tr', {class = class})))
+		add(writer:writeElementOpenTag(writer:writeElementNameWithAttributes('tr', {class = class})))
 		for columnIndex, rowCellPhrasedContent in pairs(row) do
-			assert.parameterTypeIsString(rowCellPhrasedContent)
+			assert.parameterTypeIsString('rowCellPhrasedContent', rowCellPhrasedContent)
+			
 			local align = pandocToHtmlAlignmentLookUp[pandocAlignments[columnIndex]]
-			add(writeElement('td', rowCellPhrasedContent, {class = 'align ' .. align}))
+			add(writer:writeElement('td', rowCellPhrasedContent, {class = 'align ' .. align}))
 		end
-		add(writeElementCloseTag('tr'))
+		add(writer:writeElementCloseTag('tr'))
 	end
 	
-	add(writeElementCloseTag('table'))
+	add(writer:writeElementCloseTag('table'))
 	
 	return buffer:concat()
 end
