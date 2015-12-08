@@ -12,7 +12,7 @@ local writer = markuplanguagewriter.Html5Writer.singleton
 
 
 -- Or use style="text-align:VALUE;" Or use class="align-VALUE"
-assert.globalTypeIsFunction('setmetatable')
+assert.globalTypeIsFunctionOrCall('setmetatable')
 local defaultHtmlAlignment = 'left'
 local pandocToHtmlAlignmentLookUp = setmetatable({
 		AlignLeft = 'left',
@@ -26,7 +26,7 @@ local pandocToHtmlAlignmentLookUp = setmetatable({
 	}
 )
 
-assert.globalTypeIsFunction('pairs')
+assert.globalTypeIsFunctionOrCall('pairs')
 function Table(caption, pandocAlignments, widths, headers, rows)
 	assert.parameterTypeIsString('caption', caption)
 	assert.parameterTypeIsTable('pandocAlignments', pandocAlignments)

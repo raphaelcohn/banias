@@ -12,7 +12,7 @@ local Html5Writer = markuplanguagewriter.Html5Writer
 local writer = markuplanguagewriter.Html5Writer.singleton
 
 
-assert.globalTypeIsFunction('pairs')
+assert.globalTypeIsFunctionOrCall('pairs')
 local function htmlSimpleList(elementName, items, attributesTable)
 	local buffer = tabelize()
 	for _, phrasingContent in pairs(items) do
@@ -29,7 +29,7 @@ function BulletList(items)
 	return htmlSimpleList('ul', items, {})
 end
 
-assert.globalTypeIsFunction('setmetatable')
+assert.globalTypeIsFunctionOrCall('setmetatable')
 local pandocStyleToOlTypeMapping = setmetatable({
 	UpperAlpha = 'a',
 	LowerAlpha = 'A',

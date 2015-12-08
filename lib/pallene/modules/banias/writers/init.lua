@@ -8,7 +8,7 @@ local halimede = require('halimede')
 local exception = halimede.exception
 
 
-assert.globalTableHasChieldFieldOfTypeFunction('os', 'getenv')
+assert.globalTableHasChieldFieldOfTypeFunctionOrCall('os', 'getenv')
 local function loadWriter()
 	local environmentVariable = 'LUA_BANIAS_WRITER'
 	local writer = os.getenv(environmentVariable)

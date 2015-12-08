@@ -84,7 +84,7 @@ Required styles:-
 local footnotes = tabelize()
 --TODO: Add meta author, dcterms.date to ?metadata?
 --TODO: Missing <title></title>!
-assert.globalTypeIsFunction('pairs')
+assert.globalTypeIsFunctionOrCall('pairs')
 function Doc(body, metadata, variables)
 	assert.parameterTypeIsString('body', body)
 	assert.parameterTypeIsTable('metadata', metadata)
@@ -156,7 +156,7 @@ local function codeblockWriterLoader(writerName)
 	return codeblocks[writerName]
 end
 
-assert.globalTypeIsFunction('pcall')
+assert.globalTypeIsFunctionOrCall('pcall')
 function CodeBlock(rawCodeString, attributesTable)
 	assert.parameterTypeIsString('rawCodeString', rawCodeString)
 	assert.parameterTypeIsTable('attributesTable', attributesTable)
@@ -181,7 +181,7 @@ require(moduleName .. '.' .. 'BulletListAndOrderedList')
 
 -- TODO: Use <defn> tag to define a term in the <dt>, eg <dt><defn>hello</defn></dt><dd>A way to greet someone</dd></dt>
 -- TODO: Tag ommission rules for dd / dt  http://www.w3.org/html/wg/drafts/html/master/semantics.html#the-dl-element
-assert.globalTypeIsFunction('pairs', 'ipairs')
+assert.globalTypeIsFunctionOrCall('pairs', 'ipairs')
 function DefinitionList(items)
 	assert.parameterTypeIsTable('items', items)
 	
@@ -283,7 +283,7 @@ function DoubleQuoted(phrasingContent)
 	return doubleOpeningQuoteUtf8 .. phrasingContent .. doubleClosingQuote
 end
 
-assert.globalTypeIsFunction('ipairs')
+assert.globalTypeIsFunctionOrCall('ipairs')
 function Cite(phrasingContent, citations)
 	assert.parameterTypeIsString('phrasingContent', phrasingContent)
 	assert.parameterTypeIsTable('citations', citations)
@@ -352,7 +352,7 @@ end
 require(moduleName .. '.' .. 'Image')
 
 -- HTML Entity '&#8617;' replaced with UTF-8 encoding for efficiency
-assert.globalTableHasChieldFieldOfTypeFunction('string', 'gsub')
+assert.globalTableHasChieldFieldOfTypeFunctionOrCall('string', 'gsub')
 local unicodeLeftwardArrowWithHookInUtf8 = '\226\134\169'
 local footnoteIdentifierPrefix = 'fn'
 local footnoteReferenceIdentifierPrefix = footnoteIdentifierPrefix .. 'ref'

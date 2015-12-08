@@ -30,7 +30,7 @@ function CaptionedImage(url, title, altText)
 	return buffer:concat()
 end
 
-assert.globalTableHasChieldFieldOfTypeFunction('string', 'gmatch')
+assert.globalTableHasChieldFieldOfTypeFunctionOrCall('string', 'gmatch')
 function Image(altText, url, titleWithoutSmartQuotes)
 	assert.parameterTypeIsString('altText', altText)
 	assert.parameterTypeIsString('url', url)
