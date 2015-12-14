@@ -50,7 +50,7 @@ function Image(altText, url, titleWithoutSmartQuotes)
 	-- TODO: Test converting to PNG or GIF for smaller sizes
 	-- TODO: Don't base64 encode unless necessary
 	local fileHandleStream = shellLanguage:popenReadingFromSubprocess(shellLanguage.silenced, shellLanguage.silenced, 'jpeginfo', '--info', '--lsstyle', url)
-	local line = fileHandleStream:readAllContentsAndClose()
+	local line = fileHandleStream:readAllRemainingContentsAndClose()
 	
 	
 	local index = 1

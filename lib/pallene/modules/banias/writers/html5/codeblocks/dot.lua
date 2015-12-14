@@ -31,7 +31,7 @@ local function dot(rawCodeString, attributesTable)
 		useTemporaryTextFileAfterWritingAllContentsAndClosing(shellLanguage.shellScriptFileExtensionIncludingLeadingPeriod, outputBytes, function(temporaryFilePath)
 			commandLineArguments:insert(temporaryFilePath)
 			local fileHandleStream = shellLanguage:popenReadingFromSubprocess(shellLanguage.silenced, shellLanguage.silenced, unpack(commandlineArguments))
-			return fileHandleStream:readAllContentsAndClose()
+			return fileHandleStream:readAllRemainingContentsAndClose()
 		end)
 	end
 	
