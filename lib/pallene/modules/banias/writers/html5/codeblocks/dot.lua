@@ -18,7 +18,7 @@ local useTemporaryTextFileAfterWritingAllContentsAndClosing = halimede.io.tempor
 
 -- Runs dot then base64 on 'rawCodeString' to produce a base64-encoded png in a data: URL
 -- Added to retain compatibility with JGM's Pandoc
-assert.globalTypeIsFunction('unpack')
+assert.globalTypeIsFunctionOrCall('unpack')
 local function dot(rawCodeString, attributesTable)
 	assert.parameterTypeIsString('rawCodeString', rawCodeString)
 	assert.parameterTypeIsTable('attributesTable', attributesTable)
@@ -31,7 +31,7 @@ local function dot(rawCodeString, attributesTable)
 		useTemporaryTextFileAfterWritingAllContentsAndClosing(shellLanguage.shellScriptFileExtensionIncludingLeadingPeriod, outputBytes, function(temporaryFilePath)
 			commandLineArguments:insert(temporaryFilePath)
 			local fileHandleStream = shellLanguage:popenReadingFromSubprocess(shellLanguage.silenced, shellLanguage.silenced, unpack(commandlineArguments))
-			return fileHandleStream:readAllContentsAndClose()
+			return fileHandleStream:readAllRemainingContentsAndClose()
 		end)
 	end
 	

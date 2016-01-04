@@ -30,7 +30,7 @@ function CaptionedImage(url, title, altText)
 	return buffer:concat()
 end
 
-assert.globalTableHasChieldFieldOfTypeFunction('string', 'gmatch')
+assert.globalTableHasChieldFieldOfTypeFunctionOrCall('string', 'gmatch')
 function Image(altText, url, titleWithoutSmartQuotes)
 	assert.parameterTypeIsString('altText', altText)
 	assert.parameterTypeIsString('url', url)
@@ -50,7 +50,7 @@ function Image(altText, url, titleWithoutSmartQuotes)
 	-- TODO: Test converting to PNG or GIF for smaller sizes
 	-- TODO: Don't base64 encode unless necessary
 	local fileHandleStream = shellLanguage:popenReadingFromSubprocess(shellLanguage.silenced, shellLanguage.silenced, 'jpeginfo', '--info', '--lsstyle', url)
-	local line = fileHandleStream:readAllContentsAndClose()
+	local line = fileHandleStream:readAllRemainingContentsAndClose()
 	
 	
 	local index = 1
