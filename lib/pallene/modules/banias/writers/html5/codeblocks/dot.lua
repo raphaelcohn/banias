@@ -5,7 +5,7 @@ Copyright © 2015 The developers of banias. See the COPYRIGHT file in the top-le
 
 
 local halimede = require('halimede')
-local markuplanguagewriter = require('markuplanguagewriter')
+local markuplanguagewriter = require.markuplanguagewriter
 local Html5Writer = markuplanguagewriter.Html5Writer
 local writer = markuplanguagewriter.Html5Writer.singleton
 

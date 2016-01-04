@@ -15,7 +15,8 @@ local function loadWriter()
 	if writer == nil then
 		exception.throw("The environment variable '%s' is not set", environmentVariable)
 	end
-	require('banias.writers.' .. writer)
+	local writerName = 'banias.writers.' .. writer
+	require(writerName)
 end
 
 loadWriter()
